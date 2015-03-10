@@ -33,8 +33,8 @@ string infilename_;
 string outfilename_;
 float lumi_;
 string wsname_;
-int mhLow_=110;
-int mhHigh_=150;
+int mhLow_=90;
+int mhHigh_=115;
 int ncats_;
 string webdir_;
 bool web_;
@@ -66,9 +66,9 @@ void OptionParser(int argc, char *argv[]){
     ("outfilename,o", po::value<string>(&outfilename_)->default_value("CMS-HGG_sigfit.root"), "Output file name")
     ("lumi,l", po::value<float>(&lumi_)->default_value(19620.0),                              "Luminosity")
     ("wsname,W", po::value<string>(&wsname_)->default_value("wsig_8TeV"),                     "Output workspace name")
-    ("mhLow,L", po::value<int>(&mhLow_)->default_value(110),                                  "Low mass point")
-    ("mhHigh,H", po::value<int>(&mhHigh_)->default_value(150),                                "High mass point")
-    ("ncats,n", po::value<int>(&ncats_)->default_value(9),                                    "Number of categories")
+    ("mhLow,L", po::value<int>(&mhLow_)->default_value(90),                                  "Low mass point")
+    ("mhHigh,H", po::value<int>(&mhHigh_)->default_value(115),                                "High mass point")
+    ("ncats,n", po::value<int>(&ncats_)->default_value(14),                                    "Number of categories")
     ("html,w", po::value<string>(&webdir_),                                                   "Make html in this directory")
     ("spin,s",                                                                                "Also include the spin processes")
     ("splitVH",                                                                               "Split VH production mode into WH and ZH")

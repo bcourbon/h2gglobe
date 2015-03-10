@@ -46,7 +46,7 @@ void OptionParser(int argc, char *argv[]){
     ("help,h",                                                                                "Show help")
     ("infilename,i", po::value<string>(&filename_),                                           "Input file name")
     ("datfilename,d", po::value<string>(&datfilename_)->default_value("dat/config.dat"),      "Output configuration file")
-    ("mass,m", po::value<int>(&mass_)->default_value(125),                                    "Mass to run at")
+    ("mass,m", po::value<int>(&mass_)->default_value(105),                                    "Mass to run at")
     ("procs,p", po::value<string>(&procString_)->default_value("ggh,vbf,wh,zh,tth"),          "Processes")
     ("ncats,n", po::value<int>(&ncats_)->default_value(9),                                    "Number of cats")
 		("recursive",																																							"Recursive fraction")

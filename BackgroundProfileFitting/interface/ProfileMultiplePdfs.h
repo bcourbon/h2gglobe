@@ -2,6 +2,7 @@
 #define ProfileMultiplePdfs_h
 
 #include <iostream>
+#include <fstream>     //FAN
 #include <vector>
 #include <string>
 
@@ -31,6 +32,7 @@ class ProfileMultiplePdfs {
     pair<double,map<string,TGraph*> > computeEnvelope(pair<double,map<string,TGraph*> > minNllCurves, string name, float penalty=0.);
 
     void plotNominalFits(RooAbsData *data, RooRealVar *var, int binning, string fname="");
+    void plotNominalFitsFAN(RooAbsData *data, RooRealVar *var, int binning, ofstream &outfile, int toy, string truthName, string fname="");   //FAN
     void plot(map<string,TGraph*> minNlls, string fname);
     void print(map<string,TGraph*> minNlls, float low, float high, float stepsize);
 

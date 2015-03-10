@@ -26,6 +26,10 @@
 
 #include "../interface/ProfileMultiplePdfs.h"
 #include "../interface/PdfModelBuilder.h"
+#include "../interface/PdfModelBuilderFAN.h" 
+
+
+
 
 using namespace std;
 using namespace RooFit;
@@ -102,6 +106,7 @@ int main(int argc, char* argv[]){
 
   string bkgFileName;
   string sigFileName;
+  string zeeFileName; 
   string sigWSName;
   string bkgWSName;
   string outFileName;
@@ -119,12 +124,25 @@ int main(int argc, char* argv[]){
   bool skipPlots=false;
   int verbosity;
   bool throwHybridToys=false;
+  string runType; 
+  int bins; 
+  int nBinsForMass = 160; 
+  int mhLow; 
+  int mhHigh; 
+  float LaurentConstant;  
+  float bernDownBound;  
+  float bernUpBound;  
+  bool is2011=false;  
+  bool useDoubleCB=false;  
+  bool NoVoiTest=false;  
+  bool FixOrSo=false;  
   vector<float> switchMass;
   vector<string> switchFunc;
 
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,h",                                                                                  "Show help")
+    ("zeefilename,I", po::value<string>(&zeeFileName),                                          "Zee file name")   
     ("sigfilename,s", po::value<string>(&sigFileName),                                          "Signal file name")
     ("bkgfilename,b", po::value<string>(&bkgFileName),                                          "Background file name")
     ("sigwsname", po::value<string>(&sigWSName)->default_value("cms_hgg_workspace"),            "Signal workspace name")
@@ -138,6 +156,19 @@ int main(int argc, char* argv[]){
     ("seed,r", po::value<int>(&seed)->default_value(0),                                         "Set random seed")
     ("mulow,L", po::value<float>(&mu_low)->default_value(-3.),                                  "Value of mu to start scan")
     ("muhigh,H", po::value<float>(&mu_high)->default_value(3.),                                 "Value of mu to end scan")
+    ("runType,R", po::value<string>(&runType)->default_value(""),                               "Official or low mass") 
+    ("bins,B", po::value<int>(&bins)->default_value(45),                                                                                                                 "Bins for the plot") 
+    ("nBinsForMass", po::value<int>(&nBinsForMass)->default_value(180),                                                                                               "nBinsForMass") 
+    ("LaurentConstant,C", po::value<float>(&LaurentConstant)->default_value(-4.),                                                                                                                 "constant for Laurent") 
+    ("bernDownBound,X", po::value<float>(&bernDownBound)->default_value(-11.),                                                                                                                 "lower bound for bern") 
+    ("bernUpBound,Y", po::value<float>(&bernUpBound)->default_value(11.),                                                                                                                 "up bound for bern") 
+    ("mhLow", po::value<int>(&mhLow)->default_value(75),                                                                                                                 "Starting point for scan") 
+    ("mhHigh", po::value<int>(&mhHigh)->default_value(120),                                                                                                               "End point for scan") 
+    ("is2011",                                                                                  "Run 2011 config")  
+    ("useDoubleCB",                                                                                  "use double crystal ball function")   
+    ("NoVoiTest",                                                                                  "do not add voi in test model, only pol part")   
+    ("FixVoi",                                                                                  "fix voi or so")  
+    ("skipBern",                                                                                  "Bern does not have logN")   
     ("mustep,S", po::value<float>(&mu_step)->default_value(0.01),                               "Value of mu step size")
     ("expectSignal", po::value<float>(&expectSignal)->default_value(0.),                        "Inject signal into toy")
     ("expectSignalMass", po::value<int>(&expectSignalMass)->default_value(125),                 "Inject signal at this mass")
@@ -150,7 +181,14 @@ int main(int argc, char* argv[]){
   po::notify(vm);
   if (vm.count("help")) { cout << desc << endl; exit(1); }
   if (vm.count("skipPlots")) skipPlots=true;
-  if (expectSignalMass!=110 && expectSignalMass!=115 && expectSignalMass!=120 && expectSignalMass!=125 && expectSignalMass!=130 && expectSignalMass!=135 && expectSignalMass!=140 && expectSignalMass!=145 && expectSignalMass!=150){
+  if (vm.count("is2011")) is2011=true;  
+  if (vm.count("useDoubleCB"))  useDoubleCB=true;   
+  if (vm.count("NoVoiTest"))  NoVoiTest=true;   
+  if (vm.count("FixVoi")) FixOrSo=true;    
+
+
+  //if (expectSignalMass!=110 && expectSignalMass!=115 && expectSignalMass!=120 && expectSignalMass!=125 && expectSignalMass!=130 && expectSignalMass!=135 && expectSignalMass!=140 && expectSignalMass!=145 && expectSignalMass!=150){
+  if (expectSignalMass!=110 && expectSignalMass!=115 && expectSignalMass!=120 && expectSignalMass!=105 && expectSignalMass!=100 && expectSignalMass!=95 && expectSignalMass!=90 && expectSignalMass!=85 && expectSignalMass!=80){  
     cerr << "ERROR - expectSignalMass has to be integer in range (110,150,5)" << endl;
     exit(1);
   }
@@ -174,11 +212,10 @@ int main(int argc, char* argv[]){
     RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
     RooMsgService::instance().setSilentMode(true);
   }
-  
+ 
   TFile *bkgFile = TFile::Open(bkgFileName.c_str());
   TFile *sigFile = TFile::Open(sigFileName.c_str());
 
-  //RooWorkspace *bkgWS = (RooWorkspace*)bkgFile->Get("cms_hgg_workspace");
   RooWorkspace *bkgWS = (RooWorkspace*)bkgFile->Get(bkgWSName.c_str());
   RooWorkspace *sigWS = (RooWorkspace*)sigFile->Get(sigWSName.c_str());
 
@@ -189,7 +226,14 @@ int main(int argc, char* argv[]){
   }
 
   RooRealVar *mass = (RooRealVar*)bkgWS->var("CMS_hgg_mass");
+  mass->setRange(mhLow,mhHigh); 
   RooRealVar *mu = new RooRealVar("mu","mu",0.,mu_low,mu_high);
+
+
+  
+  ofstream outfileLogFab(Form("%s/sbFitParameters_fabian_%d.log",outDir.c_str(), jobn));
+  ofstream outfileLogPau(Form("%s/sbFitParameters_paul_%d.log",outDir.c_str(), jobn));
+  
 
   TFile *outFile = new TFile(outFileName.c_str(),"RECREATE");
   TTree *muTree = new TTree("muTree","muTree");
@@ -223,15 +267,82 @@ int main(int argc, char* argv[]){
   muTree->Branch("muChi2ErrHigh",&muChi2ErrHigh);
   muTree->Branch("muAICErrHigh",&muAICErrHigh);
   
-  //TH1F *muDistFab = new TH1F("muDistFab","muDistFab",int(20*(mu_high-mu_low)),mu_low,mu_high);
-  //TH1F *muDistPaul = new TH1F("muDistPaul","muDistPaul",int(20*(mu_high-mu_low)),mu_low,mu_high);
-  //TH1F *muDistChi2 = new TH1F("muDistChi2","muDistChi2",int(20*(mu_high-mu_low)),mu_low,mu_high);
-  //TH1F *muDistAIC = new TH1F("muDistAIC","muDistAIC",int(20*(mu_high-mu_low)),mu_low,mu_high);
+
+  mass->setBins(nBinsForMass);
+  std::string ext = is2011 ? "7TeV" : "8TeV";
+  TFile *inFileZee; RooWorkspace *inWS_Zee; RooAbsPdf* pdfVoiFix;float voiMean=0; float voiMeanErrorL=0.; float voiMeanErrorH=0.; float voiSigma=0; float voiSigmaErrorL=0.; float voiSigmaErrorH=0.; float voiWidth=0; float voiWidthErrorL=0.; float voiWidthErrorH=0.; float voinCB1=0.; float voinCB1ErrorL=0.; float voinCB1ErrorH=0.; float voinCB2=0.; float voinCB2ErrorL=0.; float voinCB2ErrorH=0.; float voialphaCB1=0.; float voialphaCB2=0.; float ErrorRange=1.; 
+
+  if(runType == "Voi"){
+        inFileZee = TFile::Open(zeeFileName.c_str());
+        inWS_Zee = (RooWorkspace*)inFileZee->Get("fTestVoi_Zee");
+        if(!useDoubleCB)  pdfVoiFix = inWS_Zee->pdf(Form("ftest_Zee_Voi_%s_cat%d",ext.c_str(),cat));
+        else pdfVoiFix = inWS_Zee->pdf(Form("ftest_Zee_DCB_%s_cat%d",ext.c_str(),cat));
+
+        if(pdfVoiFix!=NULL){
+             if(!useDoubleCB){
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_mean_p0",ext.c_str(),cat)))->setConstant(true);
+                  voiMean = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_mean_p0",ext.c_str(),cat)))->getValV();
+                  voiMeanErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_mean_p0",ext.c_str(),cat)))->getErrorLo();
+                  voiMeanErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_mean_p0",ext.c_str(),cat)))->getErrorHi();
+
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_sigma_p0",ext.c_str(),cat)))->setConstant(true);
+                  voiSigma = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_sigma_p0",ext.c_str(),cat)))->getValV();
+                  voiSigmaErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_sigma_p0",ext.c_str(),cat)))->getErrorLo();
+                  voiSigmaErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_sigma_p0",ext.c_str(),cat)))->getErrorHi();
+          
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_width_p0",ext.c_str(),cat)))->setConstant(true);
+                  voiWidth = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_width_p0",ext.c_str(),cat)))->getValV();
+                  voiWidthErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_width_p0",ext.c_str(),cat)))->getErrorLo();
+                  voiWidthErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_Voi_%s_cat%d_width_p0",ext.c_str(),cat)))->getErrorHi();
+              
+            }else{
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_mean_p0",ext.c_str(),cat)))->setConstant(true);
+                  voiMean = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_mean_p0",ext.c_str(),cat)))->getValV();
+                  voiMeanErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_mean_p0",ext.c_str(),cat)))->getErrorLo();
+                  voiMeanErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_mean_p0",ext.c_str(),cat)))->getErrorHi();
+
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_sigma_p0",ext.c_str(),cat)))->setConstant(true);
+                  voiSigma = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_sigma_p0",ext.c_str(),cat)))->getValV();
+                  voiSigmaErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_sigma_p0",ext.c_str(),cat)))->getErrorLo();
+                  voiSigmaErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_sigma_p0",ext.c_str(),cat)))->getErrorHi();
+
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB1_p0",ext.c_str(),cat)))->setConstant(true);
+                  voinCB1 = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB1_p0",ext.c_str(),cat)))->getValV();
+                  voinCB1ErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB1_p0",ext.c_str(),cat)))->getErrorLo();
+                  voinCB1ErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB1_p0",ext.c_str(),cat)))->getErrorHi();
+
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB2_p0",ext.c_str(),cat)))->setConstant(true);
+                  voinCB2 = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB2_p0",ext.c_str(),cat)))->getValV();
+                  voinCB2ErrorL = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB2_p0",ext.c_str(),cat)))->getErrorLo();
+                  voinCB2ErrorH = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_nCB2_p0",ext.c_str(),cat)))->getErrorHi();
+
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_alphaCB1_p0",ext.c_str(),cat)))->setConstant(true);
+                  voialphaCB1 = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_alphaCB1_p0",ext.c_str(),cat)))->getValV();
+
+                  ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_alphaCB2_p0",ext.c_str(),cat)))->setConstant(true);
+                  voialphaCB2 = ((RooRealVar*)inWS_Zee->allVars().find(Form("ftest_Zee_DCB_%s_cat%d_alphaCB2_p0",ext.c_str(),cat)))->getValV();
+            }
+
+        }
+        else{
+             pdfVoiFix = 0;
+        }
+  }
+  else{
+        inFileZee = 0;
+        inWS_Zee = 0;
+        pdfVoiFix = 0;
+  }
   
-  mass->setBins(160); // is this too fine for the signal MC?
+
+ 
+
+  
   RooDataSet *data = (RooDataSet*)bkgWS->data(Form("data_mass_cat%d",cat));
-  //RooDataSet *data = (RooDataSet*)bkgWS->data(Form("data_cat%d_7TeV",cat));
-  RooDataHist *dataBinned = new RooDataHist(Form("roohist_data_mass_cat%d",cat),Form("roohist_data_mass_cat%d",cat),RooArgSet(*mass),*data);
+  
+  
+  RooDataHist thisdataBinned(Form("roohist_data_mass_cat%d",cat),"data",*mass,*data);  
+  RooDataSet *dataBinned = (RooDataSet*)&thisdataBinned;   
   RooDataSet *sigMC = (RooDataSet*)sigWS->data(Form("sig_ggh_mass_m%d_cat%d",expectSignalMass,cat));
   RooDataSet *sigMC_vbf = (RooDataSet*)sigWS->data(Form("sig_vbf_mass_m%d_cat%d",expectSignalMass,cat));
   RooDataSet *sigMC_wh = (RooDataSet*)sigWS->data(Form("sig_wh_mass_m%d_cat%d",expectSignalMass,cat));
@@ -243,23 +354,15 @@ int main(int argc, char* argv[]){
   sigMC->append(*sigMC_wh);
   sigMC->append(*sigMC_zh);
   sigMC->append(*sigMC_tth);
-  //RooExtendPdf *ggh_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_ggh",cat));
-  //RooExtendPdf *vbf_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_vbf",cat));
-  //RooExtendPdf *wzh_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_wzh",cat));
-  //RooExtendPdf *tth_pdf = (RooExtendPdf*)sigWS->pdf(Form("sigpdfsmrel_cat%d_7TeV_tth",cat));
-  //RooAbsPdf *sigPdf = new RooAddPdf(Form("sigpdfsmrel_cat%d_7TeV",cat),Form("sigpdfsmrel_cat%d_7TeV",cat),RooArgList(*ggh_pdf,*vbf_pdf,*wzh_pdf,*tth_pdf));
   
   if (!dataBinned || !sigMC){
     cerr << "ERROR -- one of data or signal is NULL" << endl;
     exit(1);
   }
   
-  // set of truth models to throw toys from
-  PdfModelBuilder toysModel;
+  PdfModelBuilderFAN toysModel;  
   toysModel.setObsVar(mass);
   toysModel.setSignalModifier(mu);
-  // add truth pdfs from config datfile these need to be cached
-  // to throw a toy from the SB fit make sure that the cache happens at makeSBPdfs
   for (vector<pair<int,pair<string,string> > >::iterator it=toysMap.begin(); it!=toysMap.end(); it++){
     if (it->first==-1) { // this is a hyrbid toy
       throwHybridToys=true;
@@ -281,44 +384,73 @@ int main(int argc, char* argv[]){
       toysModel.addBkgPdf(it->second.second,it->first,it->second.first,false);
       continue;
     }
-    toysModel.addBkgPdf(it->second.second,it->first,Form("truth_%s_cat%d",it->second.first.c_str(),cat),false); 
+    
+    if(runType == "Voi"){
+        if(!useDoubleCB){
+                 toysModel.addBkgPdfSumVoigtiansFixNew(it->second.second,it->first,Form("truth_%s_cat%d",it->second.first.c_str(),cat),voiMean, voiMeanErrorL, voiMeanErrorH, voiSigma, voiSigmaErrorL, voiSigmaErrorH, voiWidth, voiWidthErrorL, voiWidthErrorH, ErrorRange, Form("truth_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,FixOrSo,bernDownBound,bernUpBound,false);  
+        }else{
+                 toysModel.addBkgPdfSumVoigtiansFixNewDoubleCB(it->second.second,it->first,Form("truth_%s_cat%d",it->second.first.c_str(),cat),voiMean, voiMeanErrorL, voiMeanErrorH, voiSigma, voiSigmaErrorL, voiSigmaErrorH, voinCB1, voinCB1ErrorL, voinCB1ErrorH, voinCB2, voinCB2ErrorL, voinCB2ErrorH, voialphaCB1, voialphaCB2, ErrorRange, Form("truth_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,FixOrSo,bernDownBound,bernUpBound,false);  
+        }
+    }
+    else{
+        toysModel.addBkgPdfFAN(it->second.second,it->first,Form("truth_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,bernDownBound,bernUpBound,false);   
+    }
+    
   }
   toysModel.setSignalPdfFromMC(sigMC);
-  //toysModel.setSignalPdf(sigPdf);
   toysModel.makeSBPdfs(true);
   map<string,RooAbsPdf*> toyBkgPdfs = toysModel.getBkgPdfs();
   map<string,RooAbsPdf*> toySBPdfs = toysModel.getSBPdfs();
   toysModel.setSeed(seed);
 
-  // fabians chosen model
-  PdfModelBuilder fabianModel;
+  PdfModelBuilderFAN fabianModel; 
   fabianModel.setObsVar(mass);
   fabianModel.setSignalModifier(mu);
-  // add pdfs from config datfile - should be no need to cache these
   for (vector<pair<int,pair<string,string> > >::iterator it=fabianMap.begin(); it!=fabianMap.end(); it++){
-    fabianModel.addBkgPdf(it->second.second,it->first,Form("fabian_%s_cat%d",it->second.first.c_str(),cat),false); 
+    
+    if(runType == "Voi" && !NoVoiTest){
+         if(!useDoubleCB){
+                fabianModel.addBkgPdfSumVoigtiansFixNew(it->second.second,it->first,Form("fabian_%s_cat%d",it->second.first.c_str(),cat),voiMean, voiMeanErrorL, voiMeanErrorH, voiSigma, voiSigmaErrorL, voiSigmaErrorH, voiWidth, voiWidthErrorL, voiWidthErrorH, ErrorRange, Form("fabian_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,FixOrSo,bernDownBound,bernUpBound,false);   
+         }else{
+                fabianModel.addBkgPdfSumVoigtiansFixNewDoubleCB(it->second.second,it->first,Form("fabian_%s_cat%d",it->second.first.c_str(),cat),voiMean, voiMeanErrorL, voiMeanErrorH, voiSigma, voiSigmaErrorL, voiSigmaErrorH, voinCB1, voinCB1ErrorL, voinCB1ErrorH, voinCB2, voinCB2ErrorL, voinCB2ErrorH, voialphaCB1, voialphaCB2, ErrorRange, Form("fabian_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,FixOrSo,bernDownBound,bernUpBound,false);   
+
+         }
+
+    }
+    else{
+         fabianModel.addBkgPdfFAN(it->second.second,it->first,Form("fabian_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,bernDownBound,bernUpBound,false);  
+    }
+    
   }
   fabianModel.setSignalPdfFromMC(sigMC);
-  //fabianModel.setSignalPdf(sigPdf);
   fabianModel.makeSBPdfs(false);
   map<string,RooAbsPdf*> fabianBkgPdfs = fabianModel.getBkgPdfs();
   map<string,RooAbsPdf*> fabianSBPdfs = fabianModel.getSBPdfs();
 
-  // set of models to profile 
-  PdfModelBuilder paulModel;
+  PdfModelBuilderFAN paulModel;  
   paulModel.setObsVar(mass);
   paulModel.setSignalModifier(mu);
-  // add pdfs from config datfile - should be no need to cache these
   for (vector<pair<int,pair<string,string> > >::iterator it=paulMap.begin(); it!=paulMap.end(); it++){
-    paulModel.addBkgPdf(it->second.second,it->first,Form("paul_%s_cat%d",it->second.first.c_str(),cat),false); 
+    
+    if(runType == "Voi" && !NoVoiTest){
+          if(!useDoubleCB){
+                paulModel.addBkgPdfSumVoigtiansFixNew(it->second.second,it->first,Form("paul_%s_cat%d",it->second.first.c_str(),cat),voiMean, voiMeanErrorL, voiMeanErrorH, voiSigma, voiSigmaErrorL, voiSigmaErrorH, voiWidth, voiWidthErrorL, voiWidthErrorH, ErrorRange, Form("paul_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,FixOrSo,bernDownBound,bernUpBound,false);   
+          }else{  
+                paulModel.addBkgPdfSumVoigtiansFixNewDoubleCB(it->second.second,it->first,Form("paul_%s_cat%d",it->second.first.c_str(),cat),voiMean, voiMeanErrorL, voiMeanErrorH, voiSigma, voiSigmaErrorL, voiSigmaErrorH, voinCB1, voinCB1ErrorL, voinCB1ErrorH, voinCB2, voinCB2ErrorL, voinCB2ErrorH, voialphaCB1, voialphaCB2, ErrorRange, Form("paul_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,FixOrSo,bernDownBound,bernUpBound,false);  
+
+          }
+
+    }
+    else{
+          paulModel.addBkgPdfFAN(it->second.second,it->first,Form("paul_%s_cat%d",it->second.first.c_str(),cat),LaurentConstant,bernDownBound,bernUpBound,false);   
+    }
+    
   }
   paulModel.setSignalPdfFromMC(sigMC);
-  //paulModel.setSignalPdf(sigPdf);
   paulModel.makeSBPdfs(false);
   map<string,RooAbsPdf*> paulBkgPdfs = paulModel.getBkgPdfs();
   map<string,RooAbsPdf*> paulSBPdfs = paulModel.getSBPdfs();
 
-  // set up profile for Fabians models
   ProfileMultiplePdfs fabianProfiler;
   for (map<string,RooAbsPdf*>::iterator pdf=fabianSBPdfs.begin(); pdf!=fabianSBPdfs.end(); pdf++){
     fabianProfiler.addPdf(pdf->second);
@@ -326,7 +458,6 @@ int main(int argc, char* argv[]){
   cout << "Fabian profiler pdfs:" << endl;
   fabianProfiler.printPdfs();
 
-  // set up profile for Pauls models
   ProfileMultiplePdfs paulProfiler;
   for (map<string,RooAbsPdf*>::iterator pdf=paulSBPdfs.begin(); pdf!=paulSBPdfs.end(); pdf++){
     paulProfiler.addPdf(pdf->second);
@@ -340,17 +471,16 @@ int main(int argc, char* argv[]){
     system(Form("mkdir -p %s/plots/toys",outDir.c_str()));
   }
   
-  // throw toys - only need to fit data once as result will be cached
   cout << "------ FITTING TRUTH TO DATA ------" << endl;
-  // sometimes useful to do best fit first to get reasonable starting value
   toysModel.setSignalModifierConstant(false);
-  toysModel.fitToData(dataBinned,false,false,true);
+      toysModel.fitToData(dataBinned,false,false,true);
+  
+
   // -----
-  //toysModel.setSignalModifierVal(expectSignal);
   toysModel.setSignalModifierVal(0);  // Always throwing from the background Only fit (why I have no idea)
   toysModel.setSignalModifierConstant(true);
   toysModel.fitToData(dataBinned,false,true,true);
-  if (!skipPlots) toysModel.plotPdfsToData(dataBinned,80,Form("%s/plots/truthToData/datafit_mu%3.1f",outDir.c_str(),expectSignal),false);
+  if (!skipPlots) toysModel.plotPdfsToData(dataBinned,bins,Form("%s/plots/truthToData/datafit_mu%3.1f",outDir.c_str(),expectSignal),false); 
   toysModel.setSignalModifierVal(expectSignal);
   toysModel.setSignalModifierConstant(false);
   toysModel.saveWorkspace(outFile);
@@ -359,6 +489,7 @@ int main(int argc, char* argv[]){
     cout << "---------------------------" << endl;
     cout << "--- RUNNING TOY " << toy << " / " << ntoys << " ----" << endl;
     cout << "---------------------------" << endl;
+
     // wipe stuff for tree
     truthModel.clear();
     muFab.clear();
@@ -378,30 +509,41 @@ int main(int argc, char* argv[]){
     if (throwHybridToys) {
       toysModel.throwHybridToy(Form("truth_job%d_toy%d",jobn,toy),dataBinned->sumEntries(),switchMass,switchFunc,false,true,true,true);
       toys = toysModel.getHybridToyData();
-      if (!skipPlots) toysModel.plotToysWithPdfs(Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),80,false);
-      if (!skipPlots) toysModel.plotHybridToy(Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),80,switchMass,switchFunc,false);
+      if (!skipPlots) toysModel.plotToysWithPdfs(Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),bins,false); 
+      if (!skipPlots) toysModel.plotHybridToy(Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),bins,switchMass,switchFunc,false); 
     }
     else {
-      toysModel.throwToy(Form("truth_job%d_toy%d",jobn,toy),dataBinned->sumEntries(),false,true,true,true);
+      
+      if(runType == "Voi")  toysModel.throwToyFAN(Form("truth_job%d_toy%d",jobn,toy),dataBinned->sumEntries(),false,true,true,true,nBinsForMass);
+      else toysModel.throwToy(Form("truth_job%d_toy%d",jobn,toy),dataBinned->sumEntries(),false,true,true,true);
+      
       toys = toysModel.getToyData();
-      if (!skipPlots) toysModel.plotToysWithPdfs(Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),80,false);
+      if (!skipPlots) toysModel.plotToysWithPdfs(Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),bins,false); 
     }
     for (map<string,RooAbsData*>::iterator it=toys.begin(); it!=toys.end(); it++){
-      // ----- USEFUL DEBUG -----------
-      //  --- this can be a useful check that the truth model values are being cached properly ---
-      //toysModel.fitToData(it->second,true,false,true);
-      //toysModel.plotPdfsToData(it->second,80,Form("%s/plots/toys/job%d_toy%d",outDir.c_str(),jobn,toy),true,"NONE");
-      if (!skipPlots) fabianProfiler.plotNominalFits(it->second,mass,80,Form("%s/plots/toys/job%d_toy%d_fit_fab",outDir.c_str(),jobn,toy));
-      if (!skipPlots) paulProfiler.plotNominalFits(it->second,mass,80,Form("%s/plots/toys/job%d_toy%d_fit_paul",outDir.c_str(),jobn,toy));
+      if(runType == "Voi"){
+         for (map<string,RooAbsPdf*>::iterator itfab=fabianBkgPdfs.begin(); itfab!=fabianBkgPdfs.end(); itfab++){
+            itfab->second->fitTo(*it->second,Save(true));
+         }
+      }
+      
+             if (!skipPlots) fabianProfiler.plotNominalFits(it->second,mass,bins,Form("%s/plots/toys/job%d_toy%d_fit_fab",outDir.c_str(),jobn,toy)); 
+
+      if(runType == "Voi"){
+         for (map<string,RooAbsPdf*>::iterator itpaul=paulBkgPdfs.begin(); itpaul!=paulBkgPdfs.end(); itpaul++){
+            itpaul->second->fitTo(*it->second,Save(true));
+         }
+      }
+      
+            if (!skipPlots) paulProfiler.plotNominalFits(it->second,mass,bins,Form("%s/plots/toys/job%d_toy%d_fit_paul",outDir.c_str(),jobn,toy)); 
+
       //continue;
       // --------------------------------
       cout << "Fitting toy for truth model " << distance(toys.begin(),it) << "/" << toys.size() << " (" << it->first << ") " << endl;
-      // get Fabian envelope
       pair<double,map<string,TGraph*> > fabianMinNlls = fabianProfiler.profileLikelihood(it->second,mass,mu,mu_low,mu_high,mu_step);
       pair<double,map<string,TGraph*> > fabianEnvelope = fabianProfiler.computeEnvelope(fabianMinNlls,Form("fabEnvelope_job%d_%s_cat%d_toy%d",jobn,it->first.c_str(),cat,toy),0.);
       if (!skipPlots) fabianProfiler.plot(fabianEnvelope.second,Form("%s/plots/envelopeNlls/nlls_fab_%s_cat%d_toy%d",outDir.c_str(),it->first.c_str(),cat,toy));
      
-      // get Paul envelopes
       pair<double,map<string,TGraph*> > paulMinNlls = paulProfiler.profileLikelihood(it->second,mass,mu,mu_low,mu_high,mu_step);
       pair<double,map<string,TGraph*> > paulEnvelope = paulProfiler.computeEnvelope(paulMinNlls,Form("paulEnvelope_job%d_%s_cat%d_toy%d",jobn,it->first.c_str(),cat,toy),0.);
       if (!skipPlots) paulProfiler.plot(paulEnvelope.second,Form("%s/plots/envelopeNlls/nlls_paul_%s_cat%d_toy%d",outDir.c_str(),it->first.c_str(),cat,toy));
@@ -431,12 +573,6 @@ int main(int argc, char* argv[]){
       muChi2ErrHigh.push_back(muChi2Info.second.second);
       muAICErrHigh.push_back(muAICInfo.second.second);
 
-/*
-      cout << "Fab mu = " << muFabInfo.first << " - " << muFabInfo.second.first << " + " << muFabInfo.second.second << endl;
-      cout << "Paul mu = " << muPaulInfo.first << " - " << muPaulInfo.second.first << " + " << muPaulInfo.second.second << endl;
-      cout << "Chi2 mu = " << muChi2Info.first << " - " << muChi2Info.second.first << " + " << muChi2Info.second.second << endl;
-      cout << "AIC mu = " << muAICInfo.first << " - " << muAICInfo.second.first << " + " << muAICInfo.second.second << endl;
-*/
       cout << "Writing NLLS " << endl;
       outFile->cd();
       // Ignore poor fits
@@ -445,6 +581,7 @@ int main(int argc, char* argv[]){
       chi2Envelope.second["envelope"]->Write();
       aicEnvelope.second["envelope"]->Write();
     }
+    
     toyn=toy;
     cout << "Fill tree " << endl;
     muTree->Fill();

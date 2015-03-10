@@ -131,7 +131,10 @@ class LoopAll {
   Float_t * pho_r9_cic;
   std::string cicVersion;
   bool usePFCiC;
-  
+ 
+  int eVetoType = 1;
+  int hltBitsForPtCuts = 1;	
+ 
   std::vector<TTree*> Trees;
   std::vector<TTree*> LumiTrees;
   std::vector<TFile*> Files;

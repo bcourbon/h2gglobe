@@ -3160,7 +3160,18 @@ std::vector<int> LoopAll::DiphotonMITPreSelectionForTaggedChannels(const char * 
 }
 
 float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Float_t leadPtMin, Float_t subleadPtMin, Float_t phoidMvaCut, bool applyPtoverM, float *pho_energy_array, int fixedvtx, bool split, bool kinonly, std::vector<bool> veto_indices) {
-    
+   
+
+	cout << endl << "----- > coucou in DiphotonMITPreSelectionPerDipho !!!"<< endl;
+	cout << endl << "leadPtMin = " << leadPtMin << "subleadPtMin = " <<subleadPtMin << endl;
+
+	//b_hlt1_bit->GetEntry(10);//erase
+	//if(b_hlt1_bit == 205) cout << endl << "coucou"<<endl;
+
+	//if( find((*(b_hlt1_bit)).begin(),(*(b_hlt1_bit)).end(),205) != (*(b_hlt1_bit)).end() ) cout << endl << "coucou"<<endl;
+ 
+	//if(hltBitsForPtCuts == 205) cout << endl << "coucou"<<endl;
+
     int ivtx = (fixedvtx==-1) ? dipho_vtxind[idipho] : fixedvtx;
     int lead = dipho_leadind[idipho];
     int sublead = dipho_subleadind[idipho];
@@ -3195,18 +3206,42 @@ float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Fl
     float subleadpt = lead_p4.Pt() < sublead_p4.Pt() ? lead_p4.Pt() : sublead_p4.Pt();     
     
     if( split ) {
+	cout << endl << "---> coucou in split !! " << endl;
         if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt < 25. ||
              leadpt < 100./3. ) { return -99; } 
     } else if( applyPtoverM ) {
-        if ( leadpt/m_gamgam < leadPtMin/120. || subleadpt/m_gamgam < subleadPtMin/120. ||
-             leadpt < 100./3. || subleadpt < 100./4.) { return -99; } 
+
+	/*  //bit pt cuts FAN
+	if(hltBitsForPtCuts == 205)
+	{
+		//(pt_lead>40 GeV && pt_trail>25 GeV)||(pt_lead>35 GeV && pt_trail>35 GeV)
+		if( ! ( (leadpt > 40 && subleadpt > 25) || (leadpt > 35 && subleadpt > 35) ) )
+                {
+                        //cout << endl << "-> coucou in if of applyPtoverM 205 !! " << endl;
+                        return -99;
+                }
+	}
+	else
+	{
+		//(pt_lead>30 GeV && pt_trail>20 GeV)||(pt_lead>25 GeV && pt_trail>25 GeV)
+		if( ! ( (leadpt > 30 && subleadpt > 20) || (leadpt > 25 && subleadpt > 25) ) )
+		{
+			//cout << endl << "-> coucou in if of applyPtoverM others !! " << endl;
+                	return -99;
+		}
+	}
+        */   //bit pt cuts FAN
+
+        if ( leadpt/m_gamgam < 28./80. || subleadpt/m_gamgam < 20./80. ) { return -99; } 
     } else {
+	cout << endl << "---> coucou in else !! " << endl;
         if ( leadpt < leadPtMin || subleadpt < subleadPtMin ) { return -99; }
     }
     
     if ( runZeeValidation && m_gamgam<70. ) { return -99; }
     
     std::vector<std::vector<bool> > ph_passcut;
+	
     if (!kinonly) {
         if( version >= 13 ) {
             if (!( PhotonMITPreSelection(lead, ivtx, pho_energy_array ) && PhotonMITPreSelection(sublead, ivtx,  pho_energy_array ))) return -99; 
@@ -3214,6 +3249,7 @@ float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Fl
             if (!( PhotonMITPreSelection2011(lead, ivtx, pho_energy_array ) && PhotonMITPreSelection2011(sublead, ivtx,  pho_energy_array ))) return -99; 
         }
     }
+ //FIXME Uncomment !!!!!!
 
     if (!kinonly) {
 	    /// std::cout << "Diphoton preselection " << dipho_leadind[idipho] << " " << dipho_subleadind[idipho] << " " 
@@ -3229,6 +3265,9 @@ float LoopAll::DiphotonMITPreSelectionPerDipho(const char * type, int idipho, Fl
 // Define newfunction to calculate MIT (Pre-)Selection                                                      
 bool LoopAll::PhotonMITPreSelection( int photon_index, int vertex_index, float *pho_energy_array ) {
 
+
+	cout << endl << "-----> coucou in PhotonMITPreSelection !! " << endl;
+	std::cout << std::endl << "-----> coucou in PhotonMITPreSelection !! " << std::endl;
     int r9_category = (int) (pho_r9[photon_index] <= 0.9);                                                      
     int photon_category = r9_category + 2*PhotonEtaCategory(photon_index,2);                                 
     int photon_cic_category = PhotonCategory(photon_index,2,2);
@@ -3260,6 +3299,8 @@ bool LoopAll::PhotonMITPreSelection( int photon_index, int vertex_index, float *
     //float val_drtotk_25_99 = pho_drtotk_25_99[photon_index];
     int val_pho_isconv = pho_isconv[photon_index];
     float val_pfiso02 = (*pho_pfiso_mycharged02)[photon_index][vertex_index];
+
+    int val_pixel = (int) pho_haspixseed[photon_index];
 
     /*
       if (run==170397 && lumis==279 &&event==304405242){
@@ -3294,11 +3335,23 @@ bool LoopAll::PhotonMITPreSelection( int photon_index, int vertex_index, float *
         //if (val_abstrkiso       >= mitCuts_abstrkiso[photon_category]   ) return false;                   
         //if (val_trkiso_hollow03 >= mitCuts_trkiso_hollow03[photon_category]) return false;                                        
     }
+  
     if( typerun != kReduce ) {
         // if (val_drtotk_25_99    <  mitCuts_drtotk_25_99[photon_category]   ) return false; // Electron Rejection based on CiC for now
-        if ((!val_pho_isconv && !runZeeValidation) || (runZeeValidation && val_pho_isconv) ) return false; // Electron Rejection based Conversion Safe Veto
-    }
-   
+      
+        if(eVetoType == 1)
+        {
+                cout << endl << "ELECTRON TYPE = " << eVetoType << endl;
+                if ((!val_pho_isconv && !runZeeValidation) || (runZeeValidation && val_pho_isconv) ) return false; // Electron Rejection based Conversion Safe Veto
+        }
+        if(eVetoType == 2)
+        {
+                cout << endl << "ELECTRON TYPEb = " << eVetoType << endl;
+                if ((val_pixel && !runZeeValidation) || (runZeeValidation && val_pixel) ) return false; // Electron Rejection based haspixelseed veto  
+        }
+    }  
+
+ 
     // this does not depend on R9
     if( typerun != kReduce ) {
         if (val_pfiso02 >= mitCuts_pfiso[photon_category]) return false;            
@@ -3359,7 +3412,7 @@ bool LoopAll::PhotonMITPreSelection2011( int photon_index, int vertex_index, flo
 // ---------------------------------------------------------------------------------------------------------------------------------------------
 int LoopAll::PhotonCiCPFSelectionLevel( int photon_index, int vertex_index, std::vector<std::vector<bool> > & ph_passcut, int ncategories, 
                                         int doSublead, float *pho_energy_array ) {
-    assert( version >= 13 );
+    assert( version >= 13 ); //FIXME uncomment
     if( ! runCiC ) {
         switch(ncategories) {
         case (4):

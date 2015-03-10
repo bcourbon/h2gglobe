@@ -63,8 +63,17 @@ class PdfModelBuilder {
     RooAbsPdf* getExponential(string prefix, int order);
     RooAbsPdf* getExponentialSingle(string prefix, int order);
     RooAbsPdf* getLaurentSeries(string prefix, int order);
+    RooAbsPdf* getPolynomial(string prefix, int order);
     RooAbsPdf* getKeysPdf(string prefix);
     RooAbsPdf* getPdfFromFile(string &prefix);
+    RooAbsPdf* getDoubleCB(string prefix, float alphacb1, float alphacb2);
+    RooAbsPdf* getDoubleCB(string prefix);
+    RooAbsPdf *fixDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string name);
+    RooAbsPdf *floatDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string name);
+
+    pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> > getDoubleCBplusContinuum(string type, string prefix, int nOfficial, float alphacb1, float alphacb2, bool recursive);
+    pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> > getDoubleCBplusContinuum(string type, string prefix, int nOfficial, bool recursive);
+    pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> > getFixedDoubleCBplusContinuum(string type, string prefix, int nOfficial, RooAbsPdf *pdfZpeak, bool recursive);
 
   private:
    
@@ -101,6 +110,7 @@ class PdfModelBuilder {
     RooWorkspace *wsCache;
 
     int verbosity;
+    bool forceFracUnity_; //FAN
 
 };
 #endif

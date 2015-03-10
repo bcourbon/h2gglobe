@@ -15,8 +15,8 @@ namespace po = boost::program_options;
 
 string filename_;
 string outfilename_;
-int mhLow_=110;
-int mhHigh_=150;
+int mhLow_=90;
+int mhHigh_=115;
 string proc_;
 int cat_;
 int nInclusiveCats_;
@@ -59,8 +59,8 @@ void OptionParser(int argc, char *argv[]){
     ("help,h",                                                                                "Show help")
     ("infilename,i", po::value<string>(&filename_),                                           "Input file name")
     ("outfilename,o", po::value<string>(&outfilename_)->default_value("CMS-HGG_sigfit.root"), "Output file name")
-    ("mhLow,L", po::value<int>(&mhLow_)->default_value(110),                                  "Low mass point")
-    ("mhHigh,H", po::value<int>(&mhHigh_)->default_value(150),                                "High mass point")
+    ("mhLow,L", po::value<int>(&mhLow_)->default_value(90),                                  "Low mass point")
+    ("mhHigh,H", po::value<int>(&mhHigh_)->default_value(115),                                "High mass point")
     ("proc,p", po::value<string>(&proc_)->default_value("ggh"),                               "Signal Process")
     ("cat,c", po::value<int>(&cat_)->default_value(0),                                        "Category")
     ("nInclusiveCats", po::value<int>(&nInclusiveCats_)->default_value(4),                    "Number of inclusive categories")

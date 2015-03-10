@@ -976,7 +976,7 @@ void SimultaneousFit::makeHistFunc(string name, int order, string proc, int cat)
     }
     
     TCanvas *canv = new TCanvas("hFunc","hFunc");
-    RooPlot *plot = MH->frame(Range(110,150));
+    RooPlot *plot = MH->frame(Range(90,115));
     hFunc->plotOn(plot);
     plot->Draw();
     canv->Print(Form("plots/initialFit/%s_cat%d/%s.pdf",proc.c_str(),cat,dHist->GetName()));
@@ -1012,7 +1012,7 @@ void SimultaneousFit::runFit(string proc, int cat, int nGaussians, int dmOrder, 
 
   RooWorkspace *work = (RooWorkspace*)inFile->Get("cms_hgg_workspace");
   mass = (RooRealVar*)work->var("CMS_hgg_mass");
-  mass->setBins(120);
+  mass->setBins(120); //FIXME ??
   mass->SetTitle("m_{#gamma#gamma}");
   mass->setUnit("GeV");
   intLumi = (RooRealVar*)work->var("IntLumi");
@@ -1087,7 +1087,7 @@ void SimultaneousFit::runFit(string proc, int cat, int nGaussians, int dmOrder, 
       cout << "------ plotting ------- " << endl;
       //plot
       TCanvas *canv = new TCanvas();
-      RooPlot *plot = mass->frame(Range(100,160));
+      RooPlot *plot = mass->frame(Range(80,125));
       data->plotOn(plot);
       sigModel->plotOn(plot);
       plot->Draw();
@@ -1198,7 +1198,7 @@ void SimultaneousFit::runFit(string proc, int cat, int nGaussians, int dmOrder, 
     for (unsigned int i=0; i<allMH_.size(); i++) {
       int mh = allMH_[i];
       TCanvas *canv = new TCanvas();
-      RooPlot *plot = mass->frame(Range(100,160));
+      RooPlot *plot = mass->frame(Range(80,125));
       simFitCombData->plotOn(plot,Cut(Form("mhCat==mhCat::mh%d",mh)));
       simFitCombPdf->plotOn(plot,Slice(*mhCategory,Form("mh%d",mh)),ProjWData(*mhCategory,*simFitCombData));
       plot->Draw();
@@ -1239,14 +1239,14 @@ void SimultaneousFit::runFit(string proc, int cat, int nGaussians, int dmOrder, 
     mhFitRes->floatParsFinal().Print("v");
     delete mhFitRes;
     TCanvas *canv = new TCanvas();
-    RooPlot *plot = mass->frame(Range(100,160));
+    RooPlot *plot = mass->frame(Range(80,125));
     mhFitCombData->plotOn(plot,SumW2Error(true));
     mhFitCombPdf->plotOn(plot);
     plot->Draw();
     canv->Print(Form("plots/mhFit/%s_cat%d/%s_cat%d.pdf",proc.c_str(),cat,proc.c_str(),cat));
     canv->Print(Form("plots/mhFit/%s_cat%d/%s_cat%d.png",proc.c_str(),cat,proc.c_str(),cat));
     delete plot;
-    RooPlot *mhplot = MH->frame(Range(100,160));
+    RooPlot *mhplot = MH->frame(Range(80,125));
     mhFitCombData->plotOn(mhplot,SumW2Error(true));
     mhFitCombPdf->plotOn(mhplot);
     mhplot->Draw();
@@ -1280,7 +1280,7 @@ void SimultaneousFit::runFit(string proc, int cat, int nGaussians, int dmOrder, 
   cout << "----------------------------------------" << endl;
   cout << "------- MAKING CROSS CHECK PLOTS -------" << endl;
   cout << "----------------------------------------" << endl;
-  RooPlot *allPlot = mass->frame(Range(100,160));
+  RooPlot *allPlot = mass->frame(Range(80,125));
   for (unsigned int i=0; i<allMH_.size(); i++) {
    
     int mh = allMH_[i];
@@ -1292,7 +1292,7 @@ void SimultaneousFit::runFit(string proc, int cat, int nGaussians, int dmOrder, 
      
     //plot
     TCanvas *canv = new TCanvas();
-    RooPlot *plot = mass->frame(Range(100,160));
+    RooPlot *plot = mass->frame(Range(80,125));
     data->plotOn(plot);
     finalPdf->plotOn(plot);
     data->plotOn(allPlot);
@@ -1355,8 +1355,8 @@ void SimultaneousFit::makeEffAccFunc(RooWorkspace *inWS, string proc, int cat){
   assert(xsecsGraph.find(proc)!=xsecsGraph.end());
   TGraph *eA = makeEffAccGraph(inWS,proc,cat);
 
-  TH1F *th1f_eA = new TH1F("eAcc","eAcc",400,110,150);
-  TH1F *th1f_norm = new TH1F("norm","norm",400,110,150);
+  TH1F *th1f_eA = new TH1F("eAcc","eAcc",400,90,115);
+  TH1F *th1f_norm = new TH1F("norm","norm",400,90,115);
   vector<double> xvalues, yvalues;
   
   for (int i=1; i<=th1f_eA->GetNbinsX(); i++) {
@@ -1386,12 +1386,12 @@ void SimultaneousFit::makeEffAccFunc(RooWorkspace *inWS, string proc, int cat){
   if (doNaturalWidth_) funcEffAccRel_NW = new RooHistFunc(Form("hggpdfrel_%s_cat%d_NW_norm",proc.c_str(),cat),Form("hggpdfrel_%s_cat%d_NW_norm",proc.c_str(),cat),RooArgSet(*MH),*dHist_norm,2);
   
   TCanvas *canv = new TCanvas("EffAccFunc","EffAccFunc");
-  RooPlot *plot = MH->frame(Range(110,150),Title("#epsilon#times#alpha"));
+  RooPlot *plot = MH->frame(Range(90,115),Title("#epsilon#times#alpha"));
   funcEffAcc->plotOn(plot);
   plot->Draw();
   canv->Print(Form("plots/finalFit/%s_cat%d/effAccFunc_%s_cat%d.pdf",proc.c_str(),cat,proc.c_str(),cat));
   canv->Print(Form("plots/finalFit/%s_cat%d/effAccFunc_%s_cat%d.png",proc.c_str(),cat,proc.c_str(),cat));
-  plot = MH->frame(Range(110,150),Title("Expected Events per 1pb^{-1}"));
+  plot = MH->frame(Range(90,115),Title("Expected Events per 1pb^{-1}"));
   funcEffAccRel->plotOn(plot);
   plot->Draw();
   canv->Print(Form("plots/finalFit/%s_cat%d/nEntriesRel_%s_cat%d.pdf",proc.c_str(),cat,proc.c_str(),cat));
@@ -1404,7 +1404,7 @@ void SimultaneousFit::makeEffAccFunc(RooWorkspace *inWS, string proc, int cat){
 TGraph* SimultaneousFit::makeEffAccGraph(RooWorkspace *work, string proc, int cat){
 
   TGraph *temp = new TGraph();
-  TF1 *pol2 = new TF1("pol","pol2",110,150);
+  TF1 *pol2 = new TF1("pol","pol2",90,115);
   for (unsigned int i=0; i<allMH_.size(); i++){
     double mh = double(allMH_[i]);
     RooDataSet *data = allData[getDataSetName(proc,mh,cat)];
@@ -1439,7 +1439,7 @@ void SimultaneousFit::plotXS(string proc){
     assert(xsecsGraph.find(proc)!=xsecsGraph.end());
     xsecsGraph.find(proc)->second->SetLineWidth(3);
     xsecsGraph.find(proc)->second->GetXaxis()->SetTitle("m_{H} (GeV)");
-    xsecsGraph.find(proc)->second->GetXaxis()->SetRangeUser(110,150);
+    xsecsGraph.find(proc)->second->GetXaxis()->SetRangeUser(90,115);
     xsecsGraph.find(proc)->second->GetYaxis()->SetTitle(Form("#sigma(%s) (pb)",proc.c_str()));
     xsecsGraph.find(proc)->second->Draw("ALP");
     canv->Print(Form("plots/xs_%s.pdf",proc.c_str()));
@@ -1451,7 +1451,7 @@ void SimultaneousFit::plotXS(string proc){
     for (map<string,TGraph*>::iterator it=xsecsGraph.begin(); it!=xsecsGraph.end(); it++){
       it->second->SetLineWidth(3);
       it->second->SetLineColor(colors[col]);
-      it->second->GetXaxis()->SetRangeUser(110,150);
+      it->second->GetXaxis()->SetRangeUser(90,115);
       it->second->GetXaxis()->SetTitle("m_{H} (GeV)");
       it->second->GetYaxis()->SetTitle("#sigma(pp #rightarrow H) (pb)");
       if (col==0) it->second->Draw("ALP");
@@ -1476,7 +1476,7 @@ void SimultaneousFit::plotBR(){
   TCanvas *canv = new TCanvas("BR","BR");
   brGraph->SetLineWidth(3);
   brGraph->GetXaxis()->SetTitle("m_{H} (GeV)");
-  brGraph->GetXaxis()->SetRangeUser(110,150);
+  brGraph->GetXaxis()->SetRangeUser(90,115);
   brGraph->GetYaxis()->SetTitle("H #rightarrow #gamma#gamma BR");
   brGraph->Draw("ALP");
   canv->Print("plots/br.pdf");
@@ -1487,8 +1487,8 @@ void SimultaneousFit::plotBR(){
 void SimultaneousFit::plotPDF(string proc, int cat){
   
   TCanvas *canv = new TCanvas("PDF","PDF");
-  RooPlot *plot = mass->frame(Range(105,155));
-  for (int m=110; m<=150; m++){
+  RooPlot *plot = mass->frame(Range(85,125));
+  for (int m=90; m<=115; m++){
     MH->setVal(m);
     extendPdfRel->plotOn(plot,Normalization(1.0,RooAbsReal::RelativeExpected));
   }

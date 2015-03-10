@@ -54,10 +54,48 @@ void ProfileMultiplePdfs::plotNominalFits(RooAbsData *data, RooRealVar *var, int
     pdf->paramOn(plot,RooFit::Layout(0.34,0.96,0.89),RooFit::Format("NEA",AutoPrecision(1)));
     plot->SetTitle(Form("%s_to_%s",pdf->GetName(),data->GetName()));
     plot->Draw();
-    canv->Print(Form("%s_%s_to_%s.pdf",fname.c_str(),pdf->GetName(),data->GetName()));
+    //canv->Print(Form("%s_%s_to_%s.pdf",fname.c_str(),pdf->GetName(),data->GetName()));  //FAN
     canv->Print(Form("%s_%s_to_%s.png",fname.c_str(),pdf->GetName(),data->GetName()));
   }
 }
+
+//FAN
+void ProfileMultiplePdfs::plotNominalFitsFAN(RooAbsData *data, RooRealVar *var, int binning, ofstream &outfile, int toy, string truthName, string fname){
+ 
+  var->setConstant(false);
+  var->setVal(0.);
+  for (map<string,pair<RooAbsPdf*,float> >::iterator m=listOfPdfs.begin(); m!=listOfPdfs.end(); m++) { 
+    RooAbsPdf *pdf = m->second.first;
+    pdf->fitTo(*data);
+    //RooFitResult *fitRes = pdf->fitTo(*data,Save(true));
+    //fitRes->floatParsInit().Print("v");
+    //fitRes->floatParsFinal().Print("v");
+   
+    //FAN
+    RooArgSet *paramsForOut = pdf->getParameters(*data);
+    string NameOri = pdf->GetName();
+    string PreName = NameOri.substr(3, NameOri.length()-3);
+    float BernFrac = ((RooRealVar*)paramsForOut->find(Form("%s_frac_sum1",PreName.c_str())))->getValV();
+    float BernFracErrorL = ((RooRealVar*)paramsForOut->find(Form("%s_frac_sum1",PreName.c_str())))->getErrorLo();
+    float BernFracErrorH = ((RooRealVar*)paramsForOut->find(Form("%s_frac_sum1",PreName.c_str())))->getErrorHi();  
+    float SingelMu = ((RooRealVar*)paramsForOut->find("mu"))->getValV();
+    float SingelMuErrorL = ((RooRealVar*)paramsForOut->find("mu"))->getErrorLo();
+    float SingelMuErrorH = ((RooRealVar*)paramsForOut->find("mu"))->getErrorHi();   
+    outfile << "toy: " << toy << "  truth   " << truthName << "   BernFrac  " << BernFrac << "   BernFracErrorL   " << BernFracErrorL << "  BernFracErrorH  " << BernFracErrorH << "   SingelMu  " << SingelMu << "  SingelMuErrorL  " << SingelMuErrorL << "  SingelMuErrorH  " << SingelMuErrorH << endl; 
+    //FAN
+
+    TCanvas *canv = new TCanvas();
+    RooPlot *plot = var->frame();
+    data->plotOn(plot,Binning(binning));
+    pdf->plotOn(plot);
+    pdf->paramOn(plot,RooFit::Layout(0.34,0.96,0.89),RooFit::Format("NEA",AutoPrecision(1)));
+    plot->SetTitle(Form("%s_to_%s",pdf->GetName(),data->GetName()));
+    plot->Draw();
+    //canv->Print(Form("%s_%s_to_%s.pdf",fname.c_str(),pdf->GetName(),data->GetName()));  //FAN
+    canv->Print(Form("%s_%s_to_%s.png",fname.c_str(),pdf->GetName(),data->GetName()));
+  }
+}
+//FAN
 
 void ProfileMultiplePdfs::addToResultMap(float var, float minNll, RooAbsPdf* pdf){
   if (chosenPdfs.find(var)==chosenPdfs.end()){
@@ -432,7 +470,7 @@ void ProfileMultiplePdfs::plot(map<string,TGraph*> minNlls, string fname){
 	}
       }
     }
-    canv->Print(Form("%s.pdf",fname.c_str()));
+    //canv->Print(Form("%s.pdf",fname.c_str()));  //FAN
     canv->Print(Form("%s.png",fname.c_str()));
     delete canv;
     delete lat;

@@ -17,14 +17,14 @@ int main(){
 
   RooRealVar *mass = (RooRealVar*)inWS->var("CMS_hgg_mass");
   RooRealVar *intLumi = (RooRealVar*)inWS->var("IntLumi");
-  RooRealVar *MH = new RooRealVar("MH","MH",110,150);
+  RooRealVar *MH = new RooRealVar("MH","MH",90,115);
 
 	/*
-  InitialFit initFitRV(mass,MH,110,150);
+  InitialFit initFitRV(mass,MH,90,115);
   initFitRV.setVerbosity(0);
   initFitRV.buildSumOfGaussians("ggh_cat0",3);
 
-  InitialFit initFitWV(mass,MH,110,150);
+  InitialFit initFitWV(mass,MH,90,115);
   initFitWV.setVerbosity(0);
   initFitWV.buildSumOfGaussians("ggh_cat0",1);
 
@@ -49,18 +49,18 @@ int main(){
   map<int,map<string,RooRealVar*> > fitParamsWV = initFitWV.getFitParams();
 
 
-  LinearInterp linInterpRV(MH,110,150,fitParamsRV,false);
+  LinearInterp linInterpRV(MH,90,115,fitParamsRV,false);
   linInterpRV.setVerbosity(0);
   linInterpRV.interpolate(3);
   map<string,RooSpline1D*> splinesRV = linInterpRV.getSplines();
-  LinearInterp linInterpWV(MH,110,150,fitParamsWV,false);
+  LinearInterp linInterpWV(MH,90,115,fitParamsWV,false);
   linInterpWV.setVerbosity(0);
   linInterpWV.interpolate(1);
   map<string,RooSpline1D*> splinesWV = linInterpWV.getSplines();
 	*/
 
 	vector<int> skipMasses;
-  FinalModelConstruction finalModel(mass,MH,intLumi,110,150,"ggh",0,false,"dat/photon_systs_massfac_legacy_8TeV_v2.dat",skipMasses,1,false);
+  FinalModelConstruction finalModel(mass,MH,intLumi,90,115,"ggh",0,false,"dat/photon_systs_massfac_legacy_8TeV_v2.dat",skipMasses,1,false);
 	finalModel.printSignalSystematics();
   /*
 	finalModel.setRVsplines(splinesRV);

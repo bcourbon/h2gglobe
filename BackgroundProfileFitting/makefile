@@ -30,7 +30,7 @@ USERLIBS += -L$(ROOFITSYS)/lib -lRooFit -lRooFitCore -lRooStats
 USERLIBS += -L$(CMSSW_BASE)/lib 
 endif
 
-USERLIBS += $(shell root-config --glibs) -lTMVA -lMinuit -lFoam -lRooFit -lRooFitCore -lMathMore -lRooStats 
+USERLIBS += $(shell root-config --glibs) -lTMVA -lMinuit -lFoam -lRooFit -lRooFitCore -lMathMore -lRooStats
 CXXFLAGS = -Wall -g -Wl,-rpath=$(BASEDIR)/lib 
 LDFLAGS = -shared -W 
 
@@ -42,7 +42,7 @@ INCLUDE += $(USERINCLUDES)
 CXXFLAGS += $(INCLUDE)
 
 LIBS += $(USERLIBS)
-LIBS += -L$(CMSSW_BASE)/lib/$(SCRAM_ARCH)/ -lHiggsAnalysisCombinedLimit
+LIBS += -L$(CMSSW_BASE)/lib/$(SCRAM_ARCH)/ -lHiggsAnalysisCombinedLimit -lHiggsAnalysisGBRLikelihood
 
 # this is where you  would normaly have the lib, bin and source directories
 LIBDIR = $(BASEDIR)/lib
@@ -78,7 +78,7 @@ $(LIBDIR)/lib$(LIBNAME).so: $(OBJS) $(ROOT_OBJ)
 	@echo Building shared library $@
 	@$(LD) $(LDFLAGS) -o $(LIBDIR)/lib$(LIBNAME).so $^ $(LIBS)
 	
-$(ROOT_DICT): $(SRCS) $(HEADERS)
+$(ROOT_DICT): $(SRCS) $(HEADERS) 
 	@echo Making dictionary $@
 	@rootcint -f $@ -c -L$(ROOFITSYS)/lib -I$(ROOFITSYS)/include $(HEADERS)
 	@$(CXX) $(CXXFLAGS) -fPIC -c $(ROOT_DICT) -o $(ROOT_OBJ)

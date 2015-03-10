@@ -42,10 +42,10 @@ USERLIBS += -L$(BOOST_PATH)/lib/ -lboost_regex -lboost_program_options
 USERINCLUDES += -I$(ROOFITSYS)/include
 USERLIBS += -L$(ROOFITSYS)/lib -lRooFit -lRooFitCore
 USERLIBS += -L$(CMSSW_BASE)/lib/$(SCRAM_ARCH)/ -lHiggsAnalysisCombinedLimit
-USERLIBS += -L$(PWD)/../ -lLoopAll
+#USERLIBS += -L$(PWD)/../ -lLoopAll
 endif
 
-USERLIBS += $(shell root-config --glibs) -lTMVA -lMinuit -lFoam -lRooFit -lRooFitCore 
+USERLIBS += $(shell root-config --glibs) -lTMVA -lMinuit -lFoam -lRooFit -lRooFitCore -lPyROOT
 CXXFLAGS = -Wall -g -Wl,-rpath=$(BASEDIR)/lib:$(BASEDIR)/../ 
 LDFLAGS = -shared -W 
 
@@ -91,11 +91,11 @@ $(EXEDIR)/%: $(TESTDIR)/%.cpp $(LIBDIR)/lib$(LIBNAME).so $(BASEDIR)/interface/*.
 
 $(OBJDIR)/%.$(OBJ_EXT): $(SRCDIR)/%.cc $(ROOT_DICT) $(COMBINELIB) 
 	@echo Making object $@
-	@$(CXX) $(CXXFLAGS) -fPIC -c -l $(COMBINELIB) $<  -o $@
+	@$(CXX) $(CXXFLAGS) -fPIC -c -L $(COMBINELIB) $<  -o $@
 
 $(LIBDIR)/lib$(LIBNAME).so:$(OBJS) $(ROOT_OBJ) $(COMBINELIB)
 	@echo Building shared library $@
-	@$(LD) $(LDFLAGS) -o $(LIBDIR)/lib$(LIBNAME).so  $^ $(LIBS) -l $(COMBINELIB)
+	@$(LD) $(LDFLAGS) -o $(LIBDIR)/lib$(LIBNAME).so  $^ $(LIBS) -L $(COMBINELIB)
 
 $(ROOT_DICT): $(SRCS) $(HEADERS)
 	@echo Making dictionary $@

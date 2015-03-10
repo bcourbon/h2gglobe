@@ -23,9 +23,13 @@
 #include "boost/algorithm/string/predicate.hpp"
 
 #include "../interface/PdfModelBuilder.h"
+#include "../interface/RooDoubleCB.h"   
+//#include "HiggsAnalysis/GBRLikelihood/interface/RooDoubleCB.h"   
+
 
 #include "HiggsAnalysis/CombinedLimit/interface/HGGRooPdfs.h"
 #include "HiggsAnalysis/CombinedLimit/interface/RooBernsteinFast.h"
+
 
 using namespace std;
 using namespace RooFit;
@@ -98,7 +102,7 @@ RooAbsPdf* PdfModelBuilder::getBernstein(string prefix, int order){
   for (int i=0; i<order; i++){
     string name = Form("%s_p%d",prefix.c_str(),i);
     //params.insert(pair<string,RooRealVar*>(name, new RooRealVar(name.c_str(),name.c_str(),1.0,0.,5.)));
-    RooRealVar *param = new RooRealVar(name.c_str(),name.c_str(),0.1*(i+1),-5.,5.);
+    RooRealVar *param = new RooRealVar(name.c_str(),name.c_str(),0.1*(i+1),-11.,11.);
     RooFormulaVar *form = new RooFormulaVar(Form("%s_sq",name.c_str()),Form("%s_sq",name.c_str()),"@0*@0",RooArgList(*param));
     params.insert(pair<string,RooRealVar*>(name,param));
     prods.insert(pair<string,RooFormulaVar*>(name,form));
@@ -293,6 +297,26 @@ RooAbsPdf* PdfModelBuilder::getLaurentSeries(string prefix, int order){
   return pdf;
   //bkgPdfs.insert(pair<string,RooAbsPdf*>(pdf->GetName(),pdf));
 }
+
+RooAbsPdf* PdfModelBuilder::getPolynomial(string prefix, int order){
+  
+  RooArgList *coeffList = new RooArgList();
+  for (int i=0; i<order; i++){
+    string name = Form("%s_p%d",prefix.c_str(),i);
+    //params.insert(pair<string,RooRealVar*>(name, new RooRealVar(name.c_str(),name.c_str(),1.0,0.,5.)));
+    RooRealVar *param = new RooRealVar(name.c_str(),name.c_str(),0.01,-10.,10.);
+    //RooFormulaVar *form = new RooFormulaVar(Form("%s_sq",name.c_str()),Form("%s_sq",name.c_str()),"@0*@0",RooArgList(*param));
+    params.insert(pair<string,RooRealVar*>(name,param));
+    //prods.insert(pair<string,RooFormulaVar*>(name,form));
+    coeffList->add(*params[name]);
+  }
+  //RooChebychev *cheb = new RooChebychev(prefix.c_str(),prefix.c_str(),*obs_var,*coeffList);   
+  RooPolynomial *cheb = new RooPolynomial(prefix.c_str(),prefix.c_str(),*obs_var,*coeffList);
+  return cheb;
+  //bkgPdfs.insert(pair<string,RooAbsPdf*>(bern->GetName(),bern));
+
+}
+
 
 RooAbsPdf* PdfModelBuilder::getKeysPdf(string prefix){
   if (!keysPdfAttributesSet){
@@ -728,4 +752,192 @@ void PdfModelBuilder::saveWorkspace(string filename){
 void PdfModelBuilder::saveWorkspace(TFile *file){
   file->cd();
   wsCache->Write();
+}
+
+RooAbsPdf* PdfModelBuilder::getDoubleCB(string prefix){
+
+    string name=Form("%s_DCB",prefix.c_str());
+
+    RooRealVar *nCB1 = new RooRealVar(Form("%s_nCB1",name.c_str()),Form("%s_nCB1",name.c_str()), 2.,0.01,5000.);
+    RooRealVar *nCB2 = new RooRealVar(Form("%s_nCB2",name.c_str()),Form("%s_nCB2",name.c_str()), 2.,0.01,5000);
+    RooRealVar *meanCB = new RooRealVar(Form("%s_mean",name.c_str()),Form("%s_mean",name.c_str()), 91.,80.,100.);
+    RooRealVar *sigmaCB = new RooRealVar(Form("%s_sigma",name.c_str()),Form("%s_sigma",name.c_str()), 2., 0.1, 20.);
+    RooRealVar *alphaCB1 = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), 1., 0., 2.);   
+    RooRealVar *alphaCB2 = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), 1., 0., 2.);   
+
+    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+
+
+    return temp;
+}
+
+
+RooAbsPdf* PdfModelBuilder::getDoubleCB(string prefix, float alphacb1, float alphacb2){
+
+    string name=Form("%s_DCB",prefix.c_str());
+
+    RooRealVar *nCB1 = new RooRealVar(Form("%s_nCB1",name.c_str()),Form("%s_nCB1",name.c_str()), 2.,0.01,5000.);
+    RooRealVar *nCB2 = new RooRealVar(Form("%s_nCB2",name.c_str()),Form("%s_nCB2",name.c_str()), 2.,0.01,5000);
+    RooRealVar *meanCB = new RooRealVar(Form("%s_mean",name.c_str()),Form("%s_mean",name.c_str()), 91.,80.,100.);
+    RooRealVar *sigmaCB = new RooRealVar(Form("%s_sigma",name.c_str()),Form("%s_sigma",name.c_str()), 2., 0.1, 20.);
+    RooRealVar *alphaCB1 = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), alphacb1);   
+    RooRealVar *alphaCB2 = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), alphacb2);   
+    alphaCB1->setConstant(true);
+    alphaCB2->setConstant(true);
+
+    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+
+
+    return temp;
+}
+
+pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getDoubleCBplusContinuum(string type,string prefix, int nOfficial, float alphacb1, float alphacb2, bool recursive){
+ 
+  RooArgList *TotalBackground = new RooArgList();
+  RooArgList *coeffs = new RooArgList();
+
+  RooAbsPdf *pdfContinuum;
+  RooAbsPdf *pdfZpeak;
+
+  if (type=="Bernstein")  pdfContinuum =  getBernstein(Form("%s_ber",prefix.c_str()), nOfficial);  
+  if (type=="Exponential")  pdfContinuum = getExponentialSingle(Form("%s_exp",prefix.c_str()), nOfficial);
+  if (type=="PowerLaw")  pdfContinuum = getPowerLawSingle(Form("%s_pow",prefix.c_str()), nOfficial);
+  if (type=="Laurent")   pdfContinuum = getLaurentSeries(Form("%s_lau",prefix.c_str()), nOfficial);  
+  if (type=="Chebychev") pdfContinuum = getChebychev(Form("%s_che",prefix.c_str()), nOfficial);  
+  if (type=="Polynomial") pdfContinuum = getPolynomial(Form("%s_pol",prefix.c_str()), nOfficial);  
+
+  pdfZpeak = getDoubleCB(prefix, alphacb1, alphacb2);
+
+  TotalBackground->add(*pdfContinuum);
+  TotalBackground->add(*pdfZpeak);
+
+  RooRealVar *frac = new RooRealVar(Form("%s_frac_sum1",prefix.c_str()),Form("%s_frac_sum1",prefix.c_str()),0.01,0.000001,0.999999);
+  coeffs->add(*frac);
+
+  forceFracUnity_=true;
+  if (forceFracUnity_) {
+    string formula="1.";
+    formula += Form("-@%d", 0);
+    RooFormulaVar *recFrac = new RooFormulaVar(Form("%s_frac_sum2",prefix.c_str()),Form("%s_frac_sum2",prefix.c_str()),formula.c_str(),*coeffs);
+    coeffs->add(*recFrac);
+  }
+
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),*TotalBackground,*coeffs,recursive);
+
+  return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
+}
+
+
+pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getDoubleCBplusContinuum(string type,string prefix, int nOfficial, bool recursive){
+ 
+  RooArgList *TotalBackground = new RooArgList();
+  RooArgList *coeffs = new RooArgList();
+
+  RooAbsPdf *pdfContinuum;
+  RooAbsPdf *pdfZpeak;
+
+  if (type=="Bernstein")  pdfContinuum =  getBernstein(Form("%s_ber",prefix.c_str()), nOfficial);  
+  if (type=="Exponential")  pdfContinuum = getExponentialSingle(Form("%s_exp",prefix.c_str()), nOfficial);
+  if (type=="PowerLaw")  pdfContinuum = getPowerLawSingle(Form("%s_pow",prefix.c_str()), nOfficial);
+  if (type=="Laurent")   pdfContinuum = getLaurentSeries(Form("%s_lau",prefix.c_str()), nOfficial);  
+  if (type=="Chebychev") pdfContinuum = getChebychev(Form("%s_che",prefix.c_str()), nOfficial);  
+  if (type=="Polynomial") pdfContinuum = getPolynomial(Form("%s_pol",prefix.c_str()), nOfficial);  
+
+  pdfZpeak = getDoubleCB(prefix);
+
+  TotalBackground->add(*pdfContinuum);
+  TotalBackground->add(*pdfZpeak);
+
+  RooRealVar *frac = new RooRealVar(Form("%s_frac_sum1",prefix.c_str()),Form("%s_frac_sum1",prefix.c_str()),0.01,0.000001,0.999999);
+  coeffs->add(*frac);
+
+  forceFracUnity_=true;
+  if (forceFracUnity_) {
+    string formula="1.";
+    formula += Form("-@%d", 0);
+    RooFormulaVar *recFrac = new RooFormulaVar(Form("%s_frac_sum2",prefix.c_str()),Form("%s_frac_sum2",prefix.c_str()),formula.c_str(),*coeffs);
+    coeffs->add(*recFrac);
+  }
+
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),*TotalBackground,*coeffs,recursive);
+
+  return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
+}
+
+
+pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getFixedDoubleCBplusContinuum(string type,string prefix, int nOfficial, RooAbsPdf *pdfZpeak, bool recursive){
+ 
+  RooArgList *TotalBackground = new RooArgList();
+  RooArgList *coeffs = new RooArgList();
+
+  RooAbsPdf *pdfContinuum;
+
+  if (type=="Bernstein")  pdfContinuum =  getBernstein(Form("%s_ber",prefix.c_str()), nOfficial);  
+  if (type=="Exponential")  pdfContinuum = getExponentialSingle(Form("%s_exp",prefix.c_str()), nOfficial);
+  if (type=="PowerLaw")  pdfContinuum = getPowerLawSingle(Form("%s_pow",prefix.c_str()), nOfficial);
+  if (type=="Laurent")   pdfContinuum = getLaurentSeries(Form("%s_lau",prefix.c_str()), nOfficial);  
+  if (type=="Chebychev") pdfContinuum = getChebychev(Form("%s_che",prefix.c_str()), nOfficial);  
+  if (type=="Polynomial") pdfContinuum = getPolynomial(Form("%s_pol",prefix.c_str()), nOfficial);  
+
+  TotalBackground->add(*pdfContinuum);
+
+  TotalBackground->add(*pdfZpeak);
+
+  RooRealVar *frac = new RooRealVar(Form("%s_frac_sum1",prefix.c_str()),Form("%s_frac_sum1",prefix.c_str()),0.01,0.000001,0.999999);
+  coeffs->add(*frac);
+
+  forceFracUnity_=true;
+  if (forceFracUnity_) {
+    string formula="1.";
+    formula += Form("-@%d", 0);
+    RooFormulaVar *recFrac = new RooFormulaVar(Form("%s_frac_sum2",prefix.c_str()),Form("%s_frac_sum2",prefix.c_str()),formula.c_str(),*coeffs);
+    coeffs->add(*recFrac);
+  }
+
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),*TotalBackground,*coeffs,recursive);
+
+  return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
+}
+
+RooAbsPdf* PdfModelBuilder::fixDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string name){
+
+    RooRealVar *meanCB=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_mean",name.c_str()));
+    RooRealVar *sigmaCB=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_sigma",name.c_str()));
+    RooRealVar *nCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_nCB1",name.c_str()));
+    RooRealVar *nCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_nCB2",name.c_str()));
+    RooRealVar *alphaCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB1",name.c_str()));
+    RooRealVar *alphaCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB2",name.c_str()));
+
+    meanCB->setConstant(true);
+    sigmaCB->setConstant(true);
+    nCB1->setConstant(true);
+    nCB2->setConstant(true);
+
+      //Note: alpha1 and alpha2 are already constant
+
+    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+
+
+    return temp;
+}
+
+RooAbsPdf* PdfModelBuilder::floatDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string name){
+
+    RooRealVar *meanCB=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_mean",name.c_str()));
+    RooRealVar *sigmaCB=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_sigma",name.c_str()));
+    RooRealVar *nCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_nCB1",name.c_str()));
+    RooRealVar *nCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_nCB2",name.c_str()));
+    RooRealVar *alphaCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB1",name.c_str()));
+    RooRealVar *alphaCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB2",name.c_str()));
+
+    meanCB->setRange(meanCB->getValV()+meanCB->getErrorLo(),meanCB->getValV()+meanCB->getErrorHi());
+    sigmaCB->setRange(sigmaCB->getValV()+sigmaCB->getErrorLo(),sigmaCB->getValV()+sigmaCB->getErrorHi());
+    nCB1->setRange(nCB1->getValV()+nCB1->getErrorLo(),nCB1->getValV()+nCB1->getErrorHi());
+    nCB2->setRange(nCB2->getValV()+nCB2->getErrorLo(),nCB2->getValV()+nCB2->getErrorHi());
+
+    //Note: alpha1 and alpha2 are already constant
+
+    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+
+    return temp;
 }

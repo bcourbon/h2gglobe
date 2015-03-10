@@ -23,7 +23,7 @@ ROOT.gSystem.Load("../libLoopAll.so");
 
 ROOT.gBenchmark.Start("Analysis");
 
-config_file="filestocombine.dat"
+config_file="scriptoutput_massfacmva_legacy_PSV/filestocombine_datafiles_massfacmva_legacy_PSV.dat"
 if options.inputDat:
     config_file = options.inputDat
 fnames=[]

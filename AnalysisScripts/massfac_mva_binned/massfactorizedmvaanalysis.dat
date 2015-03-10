@@ -36,9 +36,9 @@ leadEtCut=40.0
 subleadEtCut=30.0
 
 # Options for the mass spectrum range
-massMin=100.
+massMin=60.
 massMax=180.
-nDataBins=160
+nDataBins=240
 
 nEtaCategories=2
 nR9Categories=2
@@ -88,7 +88,12 @@ gbrDiphotonFile=aux/gbrMultiClassoct31_dipho.root
 
 #bkgPolOrderByCat=5,5,5,5,5,3,4,4,3,3,3,-10,2,3
 #BIAS Studies
-bkgPolOrderByCat=4,5,5,6,6,3,3,4,2,3,3,1,2,3
+#bkgPolOrderByCat=2,2,2,2,2,2,2,2,2,2,2,2,2,2
+#bkgPolOrderByCat=2,2,2,2,2
+#only 4 cats FAN
+bkgPolOrderByCat=2,2,2,2
+#FAN close cat11
+#bkgPolOrderByCat=2,2,2,2,2,2,2,2,2,2,2,2,2
 # photon ID preselection
 phoidMvaCut=-0.2
 
@@ -99,7 +104,9 @@ phoidMvaCut=-0.2
 #JIM
 #bdtCategoryBoundaries=1,0.915,0.75,0.52,0.1,-0.39
 #JOSH
-bdtCategoryBoundaries=1,0.76,0.36,0.00,-0.42,-0.78
+#bdtCategoryBoundaries=1,0.76,0.36,0.00,-0.42,-0.78
+#only 4 cats FAN
+bdtCategoryBoundaries=1,0.36,0.00,-0.42,-0.78
 ## photonIDMVAShift_EB=0.
 ## photonIDMVAShift_EE=0.
 
@@ -137,8 +144,8 @@ doPhotonMvaIdSyst=1
 doR9Smear=0
 doR9Syst=0
 
-# doKFactorSmear=0
-# doKFactorSyst=0
+doKFactorSmear=0
+doKFactorSyst=0
 
 doPdfWeightSmear=0
 doPdfWeightSyst=0

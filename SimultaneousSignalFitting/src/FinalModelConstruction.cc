@@ -1,8 +1,6 @@
 #include <fstream>
 #include <sstream>
 
-#include "TVectorT.h"
-#include "TMatrixTSym.h"
 #include "TCanvas.h"
 #include "TF1.h"
 #include "RooPlot.h"
@@ -24,15 +22,6 @@
 using namespace std;
 using namespace RooFit;
 using namespace boost;
-
-template<class ResultT, class SourceT, class PredicateT> typename ResultT::iterator split_append(ResultT & dst, const SourceT & src, PredicateT pred)
-{
-	ResultT tmp;
-	split( tmp, src, pred );
-	size_t orig_size = dst.size();
-	copy(tmp.begin(), tmp.end(), back_inserter(dst));	
-	return dst.begin()+orig_size;
-}
 
 FinalModelConstruction::FinalModelConstruction(RooRealVar *massVar, RooRealVar *MHvar, RooRealVar *intL, int mhLow, int mhHigh, string proc, int cat, bool doSecMods, string systematicsFileName, vector<int> skipMasses, int verbosity, bool isCB, bool is2011, bool quadraticSigmaSum):
   mass(massVar),
@@ -67,53 +56,22 @@ FinalModelConstruction::FinalModelConstruction(RooRealVar *massVar, RooRealVar *
     xsSplines.insert(pair<string,RooSpline1D*>(procs[i],xsSpline));
   }
 
-  vector<string> files;
-  split( files, systematicsFileName, boost::is_any_of(",") );
-  for(vector<string>::iterator fi=files.begin(); fi!=files.end(); ++fi ) {
-	  loadSignalSystematics(*fi);
-  }
-  if (verbosity_) printSignalSystematics();
+  loadSignalSystematics(systematicsFileName);
+	if (verbosity_) printSignalSystematics();
 }
 
 FinalModelConstruction::~FinalModelConstruction(){}
 
-void FinalModelConstruction::addToSystematicsList(vector<string>::iterator begin, vector<string>::iterator end){
-	for (vector<string>::iterator it=begin; it!=end; it++){
-		string name = *it;
-		float corr = 0.;
-		int index = -1;
-		if( it->find(":") != string::npos ) {
-			vector<string> toks;
-			split(toks,*it,boost::is_any_of(":"));
-			name = toks[0];
-			corr = boost::lexical_cast<float>(toks[1]);
-			index = boost::lexical_cast<int>(toks[2]); 
-			/// *it = Form("%dTeV%s",sqrts_,name.c_str());
-			*it = name;
-		}
-		if (find(systematicsList.begin(),systematicsList.end(),name)!=systematicsList.end()) {
+void FinalModelConstruction::addToSystematicsList(vector<string> systs){
+	for (vector<string>::iterator it=systs.begin(); it!=systs.end(); it++){
+		if (find(systematicsList.begin(),systematicsList.end(),*it)!=systematicsList.end()) {
 			cout << "ERROR - duplicate systematic names! " << *it << " already found in systematics list." << endl;
 			exit(1);
 		}
 		else {
-			systematicsList.push_back(name);
-			systematicsCorr.push_back(corr);
-			systematicsIdx.push_back(index);
+			systematicsList.push_back(*it);
 		}
 	}
-}
-
-void FinalModelConstruction::addToSystematicsList(vector<string> systs){
-	addToSystematicsList( systs.begin(), systs.end() );
-	/// for (vector<string>::iterator it=systs.begin(); it!=systs.end(); it++){
-	/// 	if (find(systematicsList.begin(),systematicsList.end(),*it)!=systematicsList.end()) {
-	/// 		cout << "ERROR - duplicate systematic names! " << *it << " already found in systematics list." << endl;
-	/// 		exit(1);
-	/// 	}
-	/// 	else {
-	/// 		systematicsList.push_back(*it);
-	/// 	}
-	/// }
 }
 
 bool FinalModelConstruction::isGlobalSyst(string name){
@@ -145,13 +103,15 @@ bool FinalModelConstruction::isPerCatSyst(string name){
 float FinalModelConstruction::getRequiredAddtionalGlobalScaleFactor(string name){
 	float retVal=-999;
 	// check non correlated
-	if (globalScalesOpts.find(name)!=globalScalesOpts.end()) {
+	if (globalScalesOpts.find(name)==globalScalesOpts.end()) return retVal;
+	else {
 		for (vector<pair<int,float> >::iterator it=globalScalesOpts[name].begin(); it!=globalScalesOpts[name].end(); it++){
 			if (cat_==it->first) return it->second;
 		}
 	}
 	// check correlated
-	if (globalScalesCorrOpts.find(name)!=globalScalesCorrOpts.end()) {
+	if (globalScalesCorrOpts.find(name)==globalScalesCorrOpts.end()) return retVal;
+	else {
 		for (vector<pair<int,float> >::iterator it=globalScalesCorrOpts[name].begin(); it!=globalScalesCorrOpts[name].end(); it++){
 			if (cat_==it->first) return it->second;
 		}
@@ -200,7 +160,7 @@ void FinalModelConstruction::printSignalSystematics(){
 	}
 	// nuisance parameters
 	cout << "Implementing the following floating nuisance parameters" << endl;
-	for (map<string,RooAbsReal*>::iterator sys=photonSystematics.begin(); sys!=photonSystematics.end(); sys++){
+	for (map<string,RooRealVar*>::iterator sys=photonSystematics.begin(); sys!=photonSystematics.end(); sys++){
 		cout << "\t " << Form("%-50s",sys->first.c_str()) << " -- "; sys->second->Print();
 	}
 	// const parameters
@@ -216,10 +176,7 @@ void FinalModelConstruction::loadSignalSystematics(string filename){
 	string proc;
 	ifstream datfile;
 	datfile.open(filename.c_str());
-	if (datfile.fail()) {
-		cout << "Failed to load " << filename.c_str();
-		exit(1);
-	}
+	if (datfile.fail()) exit(1);
 	while (datfile.good()){
 		
 		string line;
@@ -232,42 +189,42 @@ void FinalModelConstruction::loadSignalSystematics(string filename){
 		if (starts_with(line,"photonCatScales=")){
 			line = line.substr(line.find("=")+1,string::npos);
 			if (line.empty()) continue;
-			vector<string>::iterator beg = split_append(photonCatScales,line,boost::is_any_of(","));
-			addToSystematicsList(beg,photonCatScales.end());
+			split(photonCatScales,line,boost::is_any_of(","));
 			if (verbosity_){
 				cout << "PhotonCatScales: ";
 				if (verbosity_) printVec(photonCatScales);
 			}
+			addToSystematicsList(photonCatScales);
 		}
 		else if (starts_with(line,"photonCatScalesCorr=")){
 			line = line.substr(line.find("=")+1,string::npos);
 			if (line.empty()) continue;
-			vector<string>::iterator beg = split_append(photonCatScalesCorr,line,boost::is_any_of(","));
-			addToSystematicsList(beg,photonCatScalesCorr.end());
+			split(photonCatScalesCorr,line,boost::is_any_of(","));
 			if (verbosity_){
 				cout << "PhotonCatScalesCorr: ";
 				if (verbosity_) printVec(photonCatScalesCorr);
 			}
+			addToSystematicsList(photonCatScalesCorr);
 		}
 		else if (starts_with(line,"photonCatSmears=")){
 			line = line.substr(line.find("=")+1,string::npos);
 			if (line.empty()) continue;
-			vector<string>::iterator beg = split_append(photonCatSmears,line,boost::is_any_of(","));
-			addToSystematicsList(beg,photonCatSmears.end());
+			split(photonCatSmears,line,boost::is_any_of(","));
 			if (verbosity_){
 				cout << "PhotonCatSmears: ";
 				if (verbosity_) printVec(photonCatSmears);
 			}
+			addToSystematicsList(photonCatSmears);
 		}
 		else if (starts_with(line,"photonCatSmearsCorr=")){
 			line = line.substr(line.find("=")+1,string::npos);
 			if (line.empty()) continue;
-			vector<string>::iterator beg = split_append(photonCatSmearsCorr,line,boost::is_any_of(","));
-			addToSystematicsList(beg,photonCatSmearsCorr.end());
+			split(photonCatSmearsCorr,line,boost::is_any_of(","));
 			if (verbosity_){
 				cout << "PhotonCatSmearsCorr: ";
 				if (verbosity_) printVec(photonCatSmearsCorr);
 			}
+			addToSystematicsList(photonCatSmearsCorr);
 		}
 		else if (starts_with(line,"globalScales=")){
 			line = line.substr(line.find("=")+1,string::npos);
@@ -331,32 +288,26 @@ void FinalModelConstruction::loadSignalSystematics(string filename){
 			split(els,line,boost::is_any_of(" "));
 			if (verbosity_) {cout << "\t"; printVec(els);}
 			if (els.size()!=4) {
-				cout << "I cant read this datfile " << line << endl;
+				cout << "I cant read this datfile " << endl;
 				exit(1);
 			}
 			string phoSystName = els[0];
 			double meanCh = lexical_cast<double>(els[1]);
-			// round up scale syst if less than 1.e-4
-			if( fabs(meanCh)<1.e-4 && fabs(meanCh)>=5.e-5 && phoSystName.find("scale")!=string::npos ) { 
-				meanCh=( meanCh>0. ? 1.e-4 : -1.e-4 ); 
-			} else if( fabs(meanCh)<1.e-4 && phoSystName.find("smear")!=string::npos ) { 
-				meanCh = 0.;
-			}
 			if( meanCh != 0. ) { 
 				addToSystMap(meanSysts,proc,diphotonCat,phoSystName,meanCh);
-				RooConstVar *meanChVar = new RooConstVar(Form("const_%s_cat%d_%dTeV_mean_%s",proc.c_str(),diphotonCat,sqrts_,phoSystName.c_str()),Form("const_%s_cat%d_%dTeV_mean_%s",proc.c_str(),diphotonCat,sqrts_,phoSystName.c_str()),meanCh);
+				RooConstVar *meanChVar = new RooConstVar(Form("const_%s_cat%d_mean_%s",proc.c_str(),diphotonCat,phoSystName.c_str()),Form("const_%s_cat%d_mean_%s",proc.c_str(),diphotonCat,phoSystName.c_str()),meanCh);
 				photonSystematicConsts.insert(make_pair(meanChVar->GetName(),meanChVar));
 			}
 			double sigmaCh = lexical_cast<double>(els[2]);
 			if( sigmaCh != 0. ) {
 				addToSystMap(sigmaSysts,proc,diphotonCat,phoSystName,sigmaCh);
-				RooConstVar *sigmaChVar = new RooConstVar(Form("const_%s_cat%d_%dTeV_sigma_%s",proc.c_str(),diphotonCat,sqrts_,phoSystName.c_str()),Form("const_%s_cat%d_%dTeV_sigma_%s",proc.c_str(),diphotonCat,sqrts_,phoSystName.c_str()),sigmaCh);
+				RooConstVar *sigmaChVar = new RooConstVar(Form("const_%s_cat%d_sigma_%s",proc.c_str(),diphotonCat,phoSystName.c_str()),Form("const_%s_cat%d_sigma_%s",proc.c_str(),diphotonCat,phoSystName.c_str()),sigmaCh);
 				photonSystematicConsts.insert(make_pair(sigmaChVar->GetName(),sigmaChVar));
 			}
 			double rateCh = lexical_cast<double>(els[3]);
 			if( rateCh != 0. ) {
 				addToSystMap(rateSysts,proc,diphotonCat,phoSystName,rateCh);
-				RooConstVar *rateChVar = new RooConstVar(Form("const_%s_cat%d_%dTeV_rate_%s",proc.c_str(),diphotonCat,sqrts_,phoSystName.c_str()),Form("const_%s_cat%d_%dTeV_rate_%s",proc.c_str(),diphotonCat,sqrts_,phoSystName.c_str()),rateCh);
+				RooConstVar *rateChVar = new RooConstVar(Form("const_%s_cat%d_rate_%s",proc.c_str(),diphotonCat,phoSystName.c_str()),Form("const_%s_cat%d_rate_%s",proc.c_str(),diphotonCat,phoSystName.c_str()),rateCh);
 				photonSystematicConsts.insert(make_pair(rateChVar->GetName(),rateChVar));
 			}
 		}
@@ -364,53 +315,10 @@ void FinalModelConstruction::loadSignalSystematics(string filename){
 	datfile.close();
 
 	// now make the actual systematics
-	// for (vector<string>::iterator it=systematicsList.begin(); it!=systematicsList.end(); it++){
-	for (size_t is=0; is<systematicsList.size(); ++is) {
-		std::string & name = systematicsList[is];
-		float & corr = systematicsCorr[is];
-		int   & idx = systematicsIdx[is];
-		if( corr != 0. ) {
-			TString nuname = name;
-			nuname = nuname.ReplaceAll(Form("%dTeV",sqrts_),"");
-			RooRealVar *var1 = new RooRealVar(Form("CMS_hgg_nuisance_eigen1_%s",nuname.Data()),Form("CMS_hgg_nuisance_eigen1_%s",nuname.Data()),0.,-5.,5.);
-			var1->setConstant(true);
-			photonSystematics.insert(make_pair(var1->GetName(),var1));
-			RooRealVar *var2 = new RooRealVar(Form("CMS_hgg_nuisance_eigen2_%s",nuname.Data()),Form("CMS_hgg_nuisance_eigen2_%s",nuname.Data()),0.,-5.,5.);
-			var2->setConstant(true);
-			photonSystematics.insert(make_pair(var2->GetName(),var2));
-			
-			TMatrixTSym<double> varmat(2);
-			varmat[0][0] = 1.;//sigmaX*sigmaX;
-			varmat[0][1] = corr;//*sigmaX*sigmaY;
-			varmat[1][0] = corr;//*sigmaX*sigmaY;
-			varmat[1][1] = 1.;//sigmaY*sigmaY;
-
-			//// // Print Matrix 
-			//// std::cout << "Covariance Matrix" << std::endl;
-			//// varmat.Print();
-			//// std::cout << "-----------------" << std::endl;
-			//// 
-			//// // 2 Get the eigenvalues/eigenvectors 
-			TVectorT<double> eval;
-			TMatrixT<double> evec = varmat.EigenVectors(eval);
-			//// std::cout << "Matrix of Eigenvectors" << std::endl;
-			//// evec.Print();
-			//// std::cout << "----------------------" << std::endl;
-			double cs = evec[idx][0]*sqrt(eval[0]) , ss = evec[idx][1]*sqrt(eval[1]);
-			//// double tot = sqrt( cs*cs + ss*ss );
-			//// std::cout << "size of eigenvec " << tot << std::endl;
-			/// cs /= tot; ss /= tot;
-			
-			RooFormulaVar *var = new RooFormulaVar(Form("CMS_hgg_nuisance_%s",name.c_str()),
-							       Form("CMS_hgg_nuisance_%s",name.c_str()),
-							       Form("%1.3g * @0 + %1.3g * @1",cs,ss), RooArgList(*var1,*var2) );
-			photonSystematics.insert(make_pair(var->GetName(),var));
-			// var->Print("V");
-		} else { 
-			RooRealVar *var = new RooRealVar(Form("CMS_hgg_nuisance_%s",name.c_str()),Form("CMS_hgg_nuisance_%s",name.c_str()),0.,-5.,5.);
-			var->setConstant(true);
-			photonSystematics.insert(make_pair(var->GetName(),var));
-		}
+	for (vector<string>::iterator it=systematicsList.begin(); it!=systematicsList.end(); it++){
+		RooRealVar *var = new RooRealVar(Form("CMS_hgg_nuisance_%s",it->c_str()),Form("CMS_hgg_nuisance_%s",it->c_str()),0.,-5.,5.);
+		var->setConstant(true);
+		photonSystematics.insert(make_pair(var->GetName(),var));
 	}
 }
 
@@ -554,7 +462,7 @@ RooAbsReal* FinalModelConstruction::getMeanWithPhotonSyst(RooAbsReal *dm, string
 		string syst = systematicsList[i];
 		int formPlace = dependents->getSize();
 		if (isGlobalSyst(syst)) {
-			RooAbsReal *nuisScale = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
+			RooRealVar *nuisScale = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
 			formula += Form("+@%d",formPlace);
 			// should check special extras 
 			float additionalFactor = getRequiredAddtionalGlobalScaleFactor(syst);
@@ -568,14 +476,10 @@ RooAbsReal* FinalModelConstruction::getMeanWithPhotonSyst(RooAbsReal *dm, string
 		int formPlace = dependents->getSize();
 		bool hasEffect = false;
 		if (isPerCatSyst(syst)) {
-			if (photonSystematicConsts.find(Form("const_%s_cat%d_%dTeV_mean_%s",proc_.c_str(),cat_,sqrts_,syst.c_str())) != photonSystematicConsts.end() ) {
-				RooConstVar *constVar = photonSystematicConsts[Form("const_%s_cat%d_%dTeV_mean_%s",proc_.c_str(),cat_,sqrts_,syst.c_str())];
-				RooAbsReal *nuisVar = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
-				if( verbosity_ ) { 
-					std::cout << "Systematic " << syst << std::endl;
-					nuisVar->Print("V");
-				}
-				if ( fabs(constVar->getVal())>=5.e-5) { 
+			if (photonSystematicConsts.find(Form("const_%s_cat%d_mean_%s",proc_.c_str(),cat_,syst.c_str())) != photonSystematicConsts.end() ) {
+				RooConstVar *constVar = photonSystematicConsts[Form("const_%s_cat%d_mean_%s",proc_.c_str(),cat_,syst.c_str())];
+				RooRealVar *nuisVar = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
+				if (constVar->getVal()>=0.0001) {
 					hasEffect = true;
 					formula += Form("+@%d*@%d",formPlace,formPlace+1);
 					dependents->add(*constVar);
@@ -594,29 +498,25 @@ RooAbsReal* FinalModelConstruction::getMeanWithPhotonSyst(RooAbsReal *dm, string
 
 RooAbsReal* FinalModelConstruction::getSigmaWithPhotonSyst(RooAbsReal *sig_fit, string name){
 
-	string formula="@0*";
+	string formula="@0*(1.";
 	RooArgList *dependents = new RooArgList();
 	dependents->add(*sig_fit); // sig_fit sits at @0
-	if (quadraticSigmaSum_) formula += "TMath::Sqrt(TMath::Max(1.e-4,1.";
-	else formula += "TMath::Max(1.e-2,(1.";
+	if (quadraticSigmaSum_) formula += "+TMath::Sqrt(0.";
 	
 	for (unsigned int i=0; i<systematicsList.size(); i++){
 		string syst = systematicsList[i];
 		int formPlace = dependents->getSize();
 		bool hasEffect = false;
 		if (isPerCatSyst(syst)) {
-			if (photonSystematicConsts.find(Form("const_%s_cat%d_%dTeV_sigma_%s",proc_.c_str(),cat_,sqrts_,syst.c_str())) != photonSystematicConsts.end() ) {
-				RooConstVar *constVar = photonSystematicConsts[Form("const_%s_cat%d_%dTeV_sigma_%s",proc_.c_str(),cat_,sqrts_,syst.c_str())];
-				RooAbsReal *nuisVar = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
-				if (constVar->getVal()>=1.e-4) {
+			if (photonSystematicConsts.find(Form("const_%s_cat%d_sigma_%s",proc_.c_str(),cat_,syst.c_str())) != photonSystematicConsts.end() ) {
+				RooConstVar *constVar = photonSystematicConsts[Form("const_%s_cat%d_sigma_%s",proc_.c_str(),cat_,syst.c_str())];
+				RooRealVar *nuisVar = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
+				if (constVar->getVal()>=0.0001) {
 					hasEffect = true;
-					if( quadraticSigmaSum_ ) { 
-						formula += Form("+@%d*@%d*(2.+@%d)",formPlace,formPlace+1,formPlace+1);
-					} else {
-						formula += Form("+@%d*@%d",formPlace,formPlace+1);
-					}
-					dependents->add(*nuisVar);
+					formula += Form("+@%d*@%d",formPlace,formPlace+1);
+					if (quadraticSigmaSum_) formula += Form("*@%d*@%d",formPlace,formPlace+1);
 					dependents->add(*constVar);
+					dependents->add(*nuisVar);
 				}
 			}
 			if (verbosity_ && !hasEffect) {
@@ -624,7 +524,9 @@ RooAbsReal* FinalModelConstruction::getSigmaWithPhotonSyst(RooAbsReal *sig_fit, 
 			}
 		}
 	}
-	formula+="))";
+	if (quadraticSigmaSum_) formula+=")";
+	formula+=")";
+	formula = Form("TMath::Max(%s,1.e-6)",formula.c_str()); // consider smooth cutoff ? 
 	RooFormulaVar *formVar = new RooFormulaVar(name.c_str(),name.c_str(),formula.c_str(),*dependents);
 	return formVar;
 }
@@ -639,10 +541,10 @@ RooAbsReal* FinalModelConstruction::getRateWithPhotonSyst(string name){
 		int formPlace = dependents->getSize();
 		bool hasEffect = false;
 		if (isPerCatSyst(syst)) {
-			if (photonSystematicConsts.find(Form("const_%s_cat%d_%dTeV_rate_%s",proc_.c_str(),cat_,sqrts_,syst.c_str())) != photonSystematicConsts.end() ) {
-				RooConstVar *constVar = photonSystematicConsts[Form("const_%s_cat%d_%dTeV_rate_%s",proc_.c_str(),cat_,sqrts_,syst.c_str())];
-				RooAbsReal *nuisVar = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
-				if (constVar->getVal()>=5.e-4) {
+			if (photonSystematicConsts.find(Form("const_%s_cat%d_rate_%s",proc_.c_str(),cat_,syst.c_str())) != photonSystematicConsts.end() ) {
+				RooConstVar *constVar = photonSystematicConsts[Form("const_%s_cat%d_rate_%s",proc_.c_str(),cat_,syst.c_str())];
+				RooRealVar *nuisVar = photonSystematics[Form("CMS_hgg_nuisance_%s",syst.c_str())];
+				if (constVar->getVal()>=0.001) {
 					hasEffect = true;
 					formula += Form("+@%d*@%d",formPlace,formPlace+1);
 					dependents->add(*constVar);
@@ -672,7 +574,7 @@ RooAbsReal* FinalModelConstruction::getRateWithPhotonSyst(string name){
 
 void FinalModelConstruction::setupSystematics(){
   
-	vertexNuisance = new RooRealVar(Form("CMS_hgg_nuisance_deltafracright"),Form("CMS_hgg_nuisance_deltafracright"),0.,-1.,1.);
+	vertexNuisance = new RooRealVar(Form("CMS_hgg_nuisance_%dTeVdeltafracright",sqrts_),Form("CMS_hgg_nuisance_%dTeVdeltafracright",sqrts_),0.,-1.,1.);
 	vertexNuisance->setConstant(true);
 	if (isCutBased_) {
 		r9barrelNuisance = new RooRealVar(Form("CMS_hgg_nuisance_%dTeVdeltar9barrel",sqrts_),Form("CMS_hgg_nuisance_%dTeVdeltar9barrel",sqrts_),0.,-1.,1.);
@@ -849,10 +751,10 @@ void FinalModelConstruction::plotPdf(string outDir){
   system(Form("mkdir -p %s",outDir.c_str()));
   
   TCanvas *canv = new TCanvas();
-  RooPlot *dataPlot = mass->frame(Title(Form("%s_cat%d",proc_.c_str(),cat_)),Range(100,160));
+  RooPlot *dataPlot = mass->frame(Title(Form("%s_cat%d",proc_.c_str(),cat_)),Range(80,125));
   for (unsigned int i=0; i<allMH_.size(); i++){
     int mh=allMH_[i];
-    stdDatasets[mh]->plotOn(dataPlot,Binning(160));
+    stdDatasets[mh]->plotOn(dataPlot,Binning(80));
     MH->setVal(mh);
     extendPdf->plotOn(dataPlot);
   }
@@ -860,12 +762,12 @@ void FinalModelConstruction::plotPdf(string outDir){
   canv->Print(Form("%s/%s_cat%d_fits.pdf",outDir.c_str(),proc_.c_str(),cat_));
   canv->Print(Form("%s/%s_cat%d_fits.png",outDir.c_str(),proc_.c_str(),cat_));
   
-  RooPlot *pdfPlot = mass->frame(Title(Form("%s_cat%d",proc_.c_str(),cat_)),Range(100,160));
-	pdfPlot->GetYaxis()->SetTitle(Form("Pdf projection / %2.1f GeV",(mass->getMax()-mass->getMin())/160.));
+  RooPlot *pdfPlot = mass->frame(Title(Form("%s_cat%d",proc_.c_str(),cat_)),Range(80,125));
+	pdfPlot->GetYaxis()->SetTitle(Form("Pdf projection / %2.1f GeV",(mass->getMax()-mass->getMin())/80.));
   for (int mh=mhLow_; mh<=mhHigh_; mh++){
     MH->setVal(mh);
 		// to get correct normlization need to manipulate with bins and range
-    extendPdf->plotOn(pdfPlot,Normalization(mass->getBins()/160.*(mass->getMax()-mass->getMin())/60.,RooAbsReal::RelativeExpected));
+    extendPdf->plotOn(pdfPlot,Normalization(mass->getBins()/80.*(mass->getMax()-mass->getMin())/60.,RooAbsReal::RelativeExpected));
   }
   pdfPlot->Draw();
   canv->Print(Form("%s/%s_cat%d_interp.pdf",outDir.c_str(),proc_.c_str(),cat_));
@@ -899,7 +801,7 @@ RooSpline1D* FinalModelConstruction::graphToSpline(string name, TGraph *graph, R
 void FinalModelConstruction::getNormalization(){
  
   TGraph *temp = new TGraph();
-  TF1 *pol2 = new TF1("pol","pol2",110,150);
+  TF1 *pol2 = new TF1("pol","pol2",90,115);
   for (unsigned int i=0; i<allMH_.size(); i++){
     double mh = double(allMH_[i]);
     RooDataSet *data = stdDatasets[mh];

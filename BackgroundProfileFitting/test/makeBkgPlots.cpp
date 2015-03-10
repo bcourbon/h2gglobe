@@ -631,8 +631,10 @@ void plotAllPdfs(RooRealVar *mgg, RooAbsData *data, RooMultiPdf *mpdf, RooCatego
 	plot->SetTitle(Form("Background functions profiled for category %d",cat));
 	plot->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
 	if (blind) {
-		mgg->setRange("unblind_up",150,180);
-		mgg->setRange("unblind_down",100,110);
+		//mgg->setRange("unblind_up",150,180);    
+		mgg->setRange("unblind_up",86,96);   //FAN
+		//mgg->setRange("unblind_down",100,110);
+		mgg->setRange("unblind_down",110,120);   //FAN
 		data->plotOn(plot,Binning(80),CutRange("unblind_down,unblind_up"));
 	}
 	else {
@@ -659,13 +661,24 @@ void plotAllPdfs(RooRealVar *mgg, RooAbsData *data, RooMultiPdf *mpdf, RooCatego
 	leg->Draw();
 	canv->Modified();
 	canv->Update();
-	canv->Print(Form("%s.pdf",name.c_str()));
+	//canv->Print(Form("%s.pdf",name.c_str()));  //FAN
 	canv->Print(Form("%s.png",name.c_str()));
-	canv->Print(Form("%s.C",name.c_str()));
+	//canv->Print(Form("%s.C",name.c_str()));  //FAN
 	delete canv;
 }
 
 int main(int argc, char* argv[]){
+
+        bool runTDR=true;
+        //bool runTDR=false;
+        
+        if(runTDR){
+           //gROOT->ProcessLine(".x hggPaperStyle.C");    //FAN
+           gStyle->SetOptFit(111);
+           gStyle->SetOptStat(0);
+           gStyle->SetOptTitle(0);
+        }
+
 
 	string bkgFileName;
 	string sigFileName;
@@ -675,15 +688,16 @@ int main(int argc, char* argv[]){
 	string catLabel;
 	double massStep;
 	double nllTolerance;
-	bool doBands=false;
+	bool doBands=true;
 	bool useBinnedData=false;
 	bool isMultiPdf=false;
 	bool doSignal=false;
-	bool blind=false;
+	bool blind=true;
 	bool makeCrossCheckProfPlots=false;
 	int mhLow;
 	int mhHigh;
 	int sqrts;
+        int Bins; //FAN
 	double mhvalue_;
 
   po::options_description desc("Allowed options");
@@ -702,8 +716,9 @@ int main(int argc, char* argv[]){
 		("makeCrossCheckProfPlots",																													"Make some cross check plots -- very slow!")
 		("massStep,m", po::value<double>(&massStep)->default_value(0.5),						   			"Mass step for calculating bands. Use a large number like 5 for quick running")
 		("nllTolerance,n", po::value<double>(&nllTolerance)->default_value(0.05),			 			"Tolerance for nll calc in %")
-		("mhLow,L", po::value<int>(&mhLow)->default_value(100),															"Starting point for scan")
-		("mhHigh,H", po::value<int>(&mhHigh)->default_value(180),														"End point for scan")
+		("mhLow,L", po::value<int>(&mhLow)->default_value(75),															"Starting point for scan")
+		("mhHigh,H", po::value<int>(&mhHigh)->default_value(120),														"End point for scan")
+                ("Bins,B", po::value<int>(&Bins)->default_value(45),                                                                                                               "bins for plotting") //FAN
 		("mhVal", po::value<double>(&mhvalue_)->default_value(125.),														"Choose the MH for the plots")
 		("sqrts,S", po::value<int>(&sqrts)->default_value(8),																"Which centre of mass is this data from?")
 		("verbose,v", 																																			"Verbose");
@@ -744,6 +759,7 @@ int main(int argc, char* argv[]){
 	RooAbsPdf *bpdf = 0;
 	RooMultiPdf *mpdf = 0; 
 	RooCategory *mcat = 0;
+
 	if (isMultiPdf) {
 		mpdf = (RooMultiPdf*)inWS->pdf(Form("CMS_hgg_cat%d_%dTeV_bkgshape",cat,sqrts));
 		mcat = (RooCategory*)inWS->cat(Form("pdfindex_%d_%dTeV",cat,sqrts));
@@ -753,7 +769,9 @@ int main(int argc, char* argv[]){
 		}
 	}
 	else {
-		bpdf = (RooAbsPdf*)inWS->pdf(Form("pdf_data_pol_model_%dTeV_cat%d",sqrts,cat));
+		//bpdf = (RooAbsPdf*)inWS->pdf(Form("data_pol_model_%dTeV_cat%d",sqrts,cat));
+		bpdf = (RooAbsPdf*)inWS->pdf(Form("hgg_bkg_%dTeV_cat%d_DCBplusBernstein5",sqrts,cat));
+
 		if (!bpdf){
 			cout << "Cant't find background pdf" << endl;
 			exit(0);
@@ -798,10 +816,15 @@ int main(int argc, char* argv[]){
 	leg->SetLineColor(0);
 
 	cout << "Plotting data and nominal curve" << endl;
-	RooPlot *plot = mgg->frame();
+	//RooPlot *plot = mgg->frame();
+	RooPlot *plot = mgg->frame(Range(double(mhLow),double(mhHigh))); //FAN
 	plot->GetXaxis()->SetTitle("m_{#gamma#gamma} (GeV)");
+	plot->GetYaxis()->SetTitle(Form("Events / %.2fGeV",float(mhHigh-mhLow)/float(Bins)));   //FAN
+        plot->SetTitleSize(0.04, "XY");  //FAN
+        plot->SetTitleOffset(1.2,"X");
 	plot->SetTitle("");
-	data->plotOn(plot,Binning(80),Invisible());
+	//data->plotOn(plot,Binning(80),Invisible());
+	data->plotOn(plot,Binning(Bins),Invisible()); //FAN low mass
 	TObject *dataLeg = (TObject*)plot->getObject(plot->numItems()-1);
 	mpdf->getCurrentPdf()->plotOn(plot,LineColor(kRed),LineWidth(2));
 	RooCurve *nomBkgCurve = (RooCurve*)plot->getObject(plot->numItems()-1);
@@ -916,12 +939,16 @@ int main(int argc, char* argv[]){
 	plot->Draw();
 
 	if (blind) {
-		mgg->setRange("unblind_up",150,180);
-		mgg->setRange("unblind_down",100,110);
-		data->plotOn(plot,Binning(80),CutRange("unblind_down,unblind_up"));
+		//mgg->setRange("unblind_up",150,180);
+		mgg->setRange("unblind_up",86,96);  //FAN
+		//mgg->setRange("unblind_down",100,110);
+		mgg->setRange("unblind_down",110,120);   //FAN
+		//data->plotOn(plot,Binning(80),CutRange("unblind_down,unblind_up"));
+		data->plotOn(plot,Binning(Bins),CutRange("unblind_down,unblind_up")); //FAN low mass
 	}
 	else {
-		data->plotOn(plot,Binning(80));
+		//data->plotOn(plot,Binning(80));
+		data->plotOn(plot,Binning(Bins)); //FAN low mass
 	}
 
 	if (doBands) {
@@ -993,17 +1020,19 @@ int main(int argc, char* argv[]){
 	cmslatex->SetTextSize(0.03);
 	cmslatex->SetNDC();
 	RooRealVar *lumi = (RooRealVar*)inWS->var("IntLumi");
-	cmslatex->DrawLatex(0.2,0.85,Form("#splitline{CMS Preliminary}{#sqrt{s} = %dTeV L = %2.1ffb^{-1}}",sqrts,lumi->getVal()/1000.));
-	latex->DrawLatex(0.2,0.78,catLabel.c_str());
+	//cmslatex->DrawLatex(0.2,0.85,Form("#splitline{CMS Preliminary}{#sqrt{s} = %dTeV L = %2.1ffb^{-1}}",sqrts,lumi->getVal()/1000.));
+	cmslatex->DrawLatex(0.25,0.85,Form("{#sqrt{s} = %dTeV L = %2.1ffb^{-1}}",sqrts,lumi->getVal()/1000.));
+	latex->DrawLatex(0.25,0.78,catLabel.c_str());
 	outWS->import(*lumi,RecycleConflictNodes());
 
 	if (blind) plot->SetMinimum(0.0001);
-	plot->GetYaxis()->SetTitleOffset(1.3);
+	//plot->GetYaxis()->SetTitleOffset(1.3);
+	plot->GetYaxis()->SetTitleOffset(2.); //FAN
 	canv->Modified();
 	canv->Update();
-	canv->Print(Form("%s/bkgplot_cat%d.pdf",outDir.c_str(),cat));
+	canv->Print(Form("%s/bkgplot_cat%d.pdf",outDir.c_str(),cat)); //FAN
 	canv->Print(Form("%s/bkgplot_cat%d.png",outDir.c_str(),cat));
-	canv->Print(Form("%s/bkgplot_cat%d.C",outDir.c_str(),cat));
+	//canv->Print(Form("%s/bkgplot_cat%d.C",outDir.c_str(),cat));  //FAN
 	canv->SetName(Form("bkgplot_cat%d",cat));
 
 	outFile->cd();

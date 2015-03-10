@@ -73,10 +73,9 @@ void InitialFit::buildSumOfGaussians(string name, int nGaussians, bool recursive
     map<string,RooGaussian*> tempGaussians;
     
     for (int g=0; g<nGaussians; g++){
-      //RooRealVar *dm = new RooRealVar(Form("dm_mh%d_g%d",mh,g),Form("dm_mh%d_g%d",mh,g),0.1,-2.5*(1.+g),2.5*(1.+g));
-      RooRealVar *dm = new RooRealVar(Form("dm_mh%d_g%d",mh,g),Form("dm_mh%d_g%d",mh,g),0.1,-10.,10.);
+      RooRealVar *dm = new RooRealVar(Form("dm_mh%d_g%d",mh,g),Form("dm_mh%d_g%d",mh,g),0.1,-2.5*(1.+0.5*g),2.5*(1.+0.5*g));
       RooAbsReal *mean = new RooFormulaVar(Form("mean_mh%d_g%d",mh,g),Form("mean_mh%d_g%d",mh,g),"@0+@1",RooArgList(*MH,*dm));
-      RooRealVar *sigma = new RooRealVar(Form("sigma_mh%d_g%d",mh,g),Form("sigma_mh%d_g%d",mh,g),2.,0.4,20.);
+      RooRealVar *sigma = new RooRealVar(Form("sigma_mh%d_g%d",mh,g),Form("sigma_mh%d_g%d",mh,g),2.,0.7,5.*(1.+0.5*g));
       RooGaussian *gaus = new RooGaussian(Form("gaus_mh%d_g%d",mh,g),Form("gaus_mh%d_g%d",mh,g),*mass,*mean,*sigma);
       tempFitParams.insert(pair<string,RooRealVar*>(string(dm->GetName()),dm));
       tempFitParams.insert(pair<string,RooRealVar*>(string(sigma->GetName()),sigma));
@@ -84,7 +83,7 @@ void InitialFit::buildSumOfGaussians(string name, int nGaussians, bool recursive
       tempGaussians.insert(pair<string,RooGaussian*>(string(gaus->GetName()),gaus));
       gaussians->add(*gaus);
       if (g<nGaussians-1) {
-        RooRealVar *frac = new RooRealVar(Form("frac_mh%d_g%d",mh,g),Form("frac_mh%d_g%d",mh,g),0.1,0.01,0.99);
+        RooRealVar *frac = new RooRealVar(Form("frac_mh%d_g%d",mh,g),Form("frac_mh%d_g%d",mh,g),0.01,0.01,0.99);
         tempFitParams.insert(pair<string,RooRealVar*>(string(frac->GetName()),frac));
         coeffs->add(*frac);
       }
@@ -157,15 +156,6 @@ map<int,map<string,RooRealVar*> > InitialFit::getFitParams(){
   return fitParams;
 }
 
-void InitialFit::printFitParams(){
-	cout << "Printing fit param map: " << endl;
-	for (map<int,map<string,RooRealVar*> >::iterator it = fitParams.begin(); it != fitParams.end(); it++){
-		for (map<string,RooRealVar*>::iterator it2 = it->second.begin(); it2 != it->second.end(); it2++){
-			cout << it->first << " : " << it2->first << " -- " << it2->second->getVal() << endl; 
-		}
-	}
-}
-
 void InitialFit::runFits(int ncpu){
   
   for (unsigned int i=0; i<allMH_.size(); i++){
@@ -195,22 +185,6 @@ void InitialFit::runFits(int ncpu){
   }
 }
 
-void InitialFit::setFitParams(std::map<int,std::map<std::string,RooRealVar*> >& pars )
-{
-	for(map<int,map<string,RooRealVar*> >::iterator ipar = pars.begin(); ipar!=pars.end(); ++ipar ) {
-		int mh = ipar->first;
-		map<string,RooRealVar*>& vars = ipar->second;
-		std::map<std::string,RooRealVar*> myParams = fitParams[mh];
-		for(std::map<std::string,RooRealVar*>::iterator ivar=vars.begin(); ivar!=vars.end(); ++ivar){
-			//// std::cout << "Setting " << ivar->first << " to " << ivar->second->getVal() << " " <<
-			//// 	myParams[ivar->first]->getVal() << " " << myParams[ivar->first]->GetName() <<
-			//// 	ivar->second->GetName() << std::endl;
-			myParams[ivar->first]->setVal(ivar->second->getVal());
-		}
-	}
-}
-
-
 void InitialFit::plotFits(string name){
   
   TCanvas *canv = new TCanvas();
@@ -224,7 +198,7 @@ void InitialFit::plotFits(string name){
     assert(datasets.find(mh)!=datasets.end());
     RooAddPdf *fitModel = sumOfGaussians[mh];
     RooDataSet *data = datasets[mh];
-    data->plotOn(plot,Binning(160));
+    data->plotOn(plot,Binning(80));
     fitModel->plotOn(plot);
   }
   plot->Draw();
