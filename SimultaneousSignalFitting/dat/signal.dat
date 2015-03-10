@@ -1,0 +1,25 @@
+# proc cat nGausRV nGausWV
+ggh 0 6 2
+ggh 1 4 3
+ggh 2 6 4
+ggh 3 6 4
+#
+vbf 0 3 3
+vbf 1 4 4
+vbf 2 5 4
+vbf 3 5 2
+
+wh 0 5 1
+wh 1 6 1
+wh 2 4 1
+wh 3 6 1
+
+zh 0 5 1
+zh 1 5 1
+zh 2 4 1
+zh 3 4 1
+
+tth 0 5 1
+tth 1 6 1
+tth 2 5 1
+tth 3 5 1

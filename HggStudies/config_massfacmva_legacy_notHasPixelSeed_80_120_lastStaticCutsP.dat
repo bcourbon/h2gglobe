@@ -1,0 +1,154 @@
+cat0
+TruthFunctions
+BernsteinPlusVoigtian 5
+ChebychevPlusVoigtian 4
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 7
+ChebychevPlusVoigtian 6
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat1
+TruthFunctions
+BernsteinPlusVoigtian 4
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 2
+LaurentPlusVoigtian 2
+TestFunctions
+BernsteinPlusVoigtian 6
+ChebychevPlusVoigtian 5
+ExponentialPlusVoigtian 4
+LaurentPlusVoigtian 4
+cat2
+TruthFunctions
+BernsteinPlusVoigtian 4
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 6
+ChebychevPlusVoigtian 5
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat3
+TruthFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 2
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 5
+ChebychevPlusVoigtian 5
+ExponentialPlusVoigtian 4
+LaurentPlusVoigtian 3
+cat4
+TruthFunctions
+BernsteinPlusVoigtian 4
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 2
+TestFunctions
+BernsteinPlusVoigtian 6
+ChebychevPlusVoigtian 5
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 4
+cat5
+TruthFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 2
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 5
+ChebychevPlusVoigtian 4
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat6
+TruthFunctions
+BernsteinPlusVoigtian 2
+ChebychevPlusVoigtian 1
+ExponentialPlusVoigtian 1 
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 4
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat7
+TruthFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 2
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 2
+TestFunctions
+BernsteinPlusVoigtian 5
+ChebychevPlusVoigtian 4
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 4
+cat8
+TruthFunctions
+BernsteinPlusVoigtian 1
+ChebychevPlusVoigtian 1
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat9
+TruthFunctions
+BernsteinPlusVoigtian 1
+ChebychevPlusVoigtian 1
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 2
+TestFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 4
+cat10
+TruthFunctions
+BernsteinPlusVoigtian 2
+ChebychevPlusVoigtian 1
+ExponentialPlusVoigtian 1 
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 4
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat11
+TruthFunctions
+BernsteinPlusVoigtian 1
+ChebychevPlusVoigtian 1
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat12
+TruthFunctions
+BernsteinPlusVoigtian 1
+ChebychevPlusVoigtian 1
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 3
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
+cat13
+TruthFunctions
+BernsteinPlusVoigtian 3
+ChebychevPlusVoigtian 2
+ExponentialPlusVoigtian 1
+LaurentPlusVoigtian 1
+TestFunctions
+BernsteinPlusVoigtian 5
+ChebychevPlusVoigtian 4
+ExponentialPlusVoigtian 3
+LaurentPlusVoigtian 3
