@@ -443,9 +443,9 @@ po::options_description desc("Allowed options");
   RooRealVar *mass = (RooRealVar*)inWS->var("CMS_hgg_mass");
   mass->setRange(mhLow,mhHigh); 
   pdfsModel.setObsVar(mass);
- 
+	 
   ofstream logfile_stream(logfile.c_str());  
-
+		
 for (int cat=startingCategory; cat<ncats; cat++){
     cout << "processing cat " << cat << endl; 
     
@@ -457,7 +457,7 @@ for (int cat=startingCategory; cat<ncats; cat++){
     //RooDataHist thisdataBinned(Form("roohist_%s_mass_cat%d",source.c_str(),cat),"data",*mass,*dataFull);
     //RooDataSet *data = (RooDataSet*)&thisdataBinned;
 
-
+	
     if(data->sumEntries() <= 1e-6)  continue;
 
     RooAbsPdf  *bkgPdf;

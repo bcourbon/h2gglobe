@@ -30,3 +30,4 @@ treevariables massfac_mva_binned/fullmvatrees.dat common/unbinned_datacard_trees
 ##
 ## analyzer PhotonAnalysis photonanalysis.dat
 analyzer MassFactorizedMvaAnalysis photonanalysis.dat analysis_settings.dat massfactorizedmvaanalysis.dat systs_settings.dat doFullMvaFinalTree=1 massMin=75. massMax=120. nDataBins=90
+
