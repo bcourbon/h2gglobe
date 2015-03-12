@@ -23,8 +23,8 @@
 #include "boost/algorithm/string/predicate.hpp"
 
 #include "../interface/PdfModelBuilder.h"
-#include "../interface/RooDoubleCB.h"   
-//#include "HiggsAnalysis/GBRLikelihood/interface/RooDoubleCB.h"   
+//#include "../interface/RooDoubleCBFast.h"   
+#include "HiggsAnalysis/GBRLikelihood/interface/RooDoubleCBFast.h"   
 
 
 #include "HiggsAnalysis/CombinedLimit/interface/HGGRooPdfs.h"
@@ -765,7 +765,7 @@ RooAbsPdf* PdfModelBuilder::getDoubleCB(string prefix){
     RooRealVar *alphaCB1 = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), 1., 0., 2.);   
     RooRealVar *alphaCB2 = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), 1., 0., 2.);   
 
-    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
 
 
     return temp;
@@ -785,7 +785,7 @@ RooAbsPdf* PdfModelBuilder::getDoubleCB(string prefix, float alphacb1, float alp
     alphaCB1->setConstant(true);
     alphaCB2->setConstant(true);
 
-    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
 
 
     return temp;
@@ -915,7 +915,7 @@ RooAbsPdf* PdfModelBuilder::fixDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string
 
       //Note: alpha1 and alpha2 are already constant
 
-    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
 
 
     return temp;
@@ -937,7 +937,7 @@ RooAbsPdf* PdfModelBuilder::floatDoubleCB(RooAbsPdf *dcb, RooDataSet *data, stri
 
     //Note: alpha1 and alpha2 are already constant
 
-    RooAbsPdf *temp = new RooDoubleCB(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
 
     return temp;
 }

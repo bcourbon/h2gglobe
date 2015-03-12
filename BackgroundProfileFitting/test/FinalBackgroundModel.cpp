@@ -40,10 +40,10 @@
 
 #include "RooCategory.h"
 #include "HiggsAnalysis/CombinedLimit/interface/RooMultiPdf.h"
-//#include "HiggsAnalysis/GBRLikelihood/interface/RooDoubleCB.h"   
+#include "HiggsAnalysis/GBRLikelihood/interface/RooDoubleCBFast.h"   
 
 #include "../interface/PdfModelBuilder.h"
-#include "../interface/RooDoubleCB.h"
+//#include "../interface/RooDoubleCBFast.h"
 #include <Math/PdfFuncMathCore.h>
 #include <Math/ProbFunc.h>
 #include <iomanip>
