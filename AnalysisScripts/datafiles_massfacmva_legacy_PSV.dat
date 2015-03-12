@@ -53,13 +53,13 @@ typ=-1 ind=4 draw=1   Nam=wzh_m90_8TeV   CaDir=/store/group/phys_higgs/cmshgg/re
 typ=-1 ind=3 draw=1   Nam=tth_m90_8TeV   CaDir=/store/group/phys_higgs/cmshgg/reduced/legacy_paper/legacy_paper_reduction_8TeV_v5/mc/Summer12_RD1/TTH_HToGG_M-90_8TeV-pythia6_Summer12_DR53X-PU_RD1_START53_V7N-v2   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
 
 typ=-1 ind=1 draw=1   Nam=ggh_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_GGH_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
-typ=-1 ind=1 draw=1   Nam=vbf_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_VBF_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
-typ=-1 ind=1 draw=1   Nam=wzh_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_WZH_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
-typ=-1 ind=1 draw=1   Nam=tth_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_TTH_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000 
+typ=-1 ind=2 draw=1   Nam=vbf_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_VBF_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
+typ=-1 ind=4 draw=1   Nam=wzh_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_WZH_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
+typ=-1 ind=3 draw=1   Nam=tth_m85_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_TTH_M85   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000 
 
 typ=-1 ind=1 draw=1   Nam=ggh_m80_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_GGH_M80   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
-typ=-1 ind=1 draw=1   Nam=vbf_m80_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_VBF_M80   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
-typ=-1 ind=1 draw=1   Nam=tth_m80_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_TTH_M80   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000 
+typ=-1 ind=2 draw=1   Nam=vbf_m80_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_VBF_M80   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000
+typ=-1 ind=3 draw=1   Nam=tth_m80_8TeV   Dir=/afs/cern.ch/work/b/bcourbon/public/LowMassHiggs/SM_TTH_M80   red=0 lum=1000000.0   xsec=-1.0   kfac=1.000000   scal=1.000000 
 
 #
 # Background
