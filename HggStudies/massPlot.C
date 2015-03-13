@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 	TString category="0";
 	string var="all_mass";
 	TString analysis="massfit";
-	bool blind=true;
+	bool blind=false;
 	bool breakdown=false;
 	bool omitZpeak=false;
 	bool cleanHighWeightEvents=false;
