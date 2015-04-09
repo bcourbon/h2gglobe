@@ -112,6 +112,67 @@ void plot(RooRealVar *mass, RooAbsPdf *pdf, RooDataSet *data, string name, int b
   delete lat;
 }
 
+void plot2(RooRealVar *mass, RooAbsPdf *pdf, RooAbsPdf *pdf1, RooAbsPdf *pdf2, float frac, RooDataSet *data, string name, int bins, int mhLow, int mhHigh){
+ 
+ 
+  RooPlot *plot = mass->frame();
+  mass->setRange("unblindReg_1",85,95);
+  mass->setRange("unblindReg_2",110,120);
+  if (BLIND) {
+    data->plotOn(plot,Binning(bins),CutRange("unblindReg_1"));
+    data->plotOn(plot,Binning(bins),CutRange("unblindReg_2"));
+    data->plotOn(plot,Binning(bins),Invisible());
+  }
+  else data->plotOn(plot,Binning(bins));
+
+  TCanvas *canv = new TCanvas();
+
+  pdf->plotOn(plot);
+  pdf->plotOn(plot,Components(*pdf1),LineColor(kRed),LineStyle(2)) ;
+  pdf->plotOn(plot,Components(*pdf2),LineColor(kGreen),LineStyle(2)) ;
+
+//,RooFit::NormRange("fitdata_1,fitdata_2"));
+  //pdf->paramOn(plot,RooFit::Layout(0.35,0.89,0.89),RooFit::Format("NEA",AutoPrecision(1)));  
+  //plot->getAttText()->SetTextSize(0.01); 
+  //plot->SetMaximum(plot->GetMaximum()*2);    
+  if (BLIND) plot->SetMinimum(0.0001);
+  plot->SetTitle("");
+  plot->SetYTitle(Form("Events / %.2fGeV",float(mhHigh-mhLow)/float(bins)));
+  //plot->GetYaxis()->SetLabelSize(0.05);
+  plot->SetTitleSize(0.045, "Y");
+  plot->SetTitleOffset(1.,"Y");
+  //plot->GetXaxis()->SetLabelSize(0.15);
+  //plot->GetYaxis()->SetLabelSize(0.15);
+  plot->SetXTitle("m_{#gamma#gamma}(GeV)");
+  plot->SetTitleSize(0.15, "X");
+  plot->Draw();
+
+  TLatex *lat = new TLatex();
+  lat->SetNDC();
+  lat->SetTextFont(42);
+  lat->DrawLatex(0.68,0.93,"19.7fb^{-1}(8TeV)"); 
+  lat->DrawLatex(0.12,0.85,"CMS Preliminary");   
+  lat->DrawLatex(0.7,0.7,Form("Frac = %.3f",frac));  
+  string nameTemp = name;
+  int catNum = nameTemp.find("cat");
+  string catNameOLD = nameTemp.replace(0, catNum, "");
+  string catName = catNameOLD.replace(catNameOLD.length()-4, 4, "");
+  lat->DrawLatex(0.1,0.92, Form("%s", catName.c_str()));  
+
+     TLegend *leg = new TLegend(0.12,0.7,0.32,0.8);
+     leg->SetFillColor(0);
+     leg->SetLineColor(1);
+     leg->AddEntry(data,"Data","lep");
+     leg->Draw("same");
+
+  canv->SaveAs(Form("%s.png",name.c_str()));
+  canv->SaveAs(Form("%s.pdf",name.c_str()));
+ 
+  delete canv;
+  delete lat;
+}
+
+
 
 void runFit(RooAbsPdf *pdf, RooDataSet *data, double *NLL, int *stat_t, int MaxTries, int mhLow, int mhHigh){
 
@@ -121,6 +182,7 @@ void runFit(RooAbsPdf *pdf, RooDataSet *data, double *NLL, int *stat_t, int MaxT
 	while (stat!=0){
 	  if (ntries>=MaxTries) break;
 	  RooFitResult *fitTest = pdf->fitTo(*data,RooFit::Save(1),Range(mhLow,mhHigh));
+	  //RooFitResult *fitTest = pdf->fitTo(*data,RooFit::Save(1),Range(85,110));
 	  //RooFitResult *fitTest = pdf->fitTo(*data,RooFit::Save(1),SumW2Error(kTRUE)
           stat = fitTest->status();
 	  minnll = fitTest->minNll();
@@ -214,6 +276,7 @@ int main(int argc, char* argv[]){
   mass->setRange(mhLow,mhHigh); 
   pdfsModel.setObsVar(mass);
   //mass->setBins(bins); 
+  //mass->setRange(85,110);
 
 
   for (int cat=jcats; cat<ncats; cat++){ 
@@ -241,15 +304,25 @@ int main(int argc, char* argv[]){
     RooAbsPdf *pdfZeeFixed=pdfsModel.fixDoubleCB(pdfZee,data,Form("hgg_bkg_%s_cat%d_DCB",ext.c_str(),cat));
 
     RooAbsPdf  *bkgPdf;
+    RooAbsPdf  *berComponent;
+    RooAbsPdf  *dcbComponent;
+
 
     string funcType = funChoice[cat].first;
     int orderOff = funChoice[cat].second; 
     
-    bkgPdf = pdfsModel.getFixedDoubleCBplusContinuum(funcType,Form("hgg_bkg_%s_cat%d",ext.c_str(),cat),orderOff,pdfZeeFixed,true).first;
+    bkgPdf = pdfsModel.getFixedDoubleCBplusContinuum(funcType,Form("hgg_bkg_%s_cat%d",ext.c_str(),cat),orderOff,pdfZeeFixed,false).first;
+    berComponent = pdfsModel.getFixedDoubleCBplusContinuum(funcType,Form("hgg_bkg_%s_cat%d",ext.c_str(),cat),orderOff,pdfZeeFixed,false).second.first;
+    dcbComponent = pdfsModel.getFixedDoubleCBplusContinuum(funcType,Form("hgg_bkg_%s_cat%d",ext.c_str(),cat),orderOff,pdfZeeFixed,false).second.second;
 
     cout<<endl<<"///////////////////////////////////"<<endl;
     bkgPdf->Print();
     cout<<"///////////////////////////////////"<<endl<<endl;
+
+  cout<<endl<<"///////////////////////////////////"<<endl;
+    berComponent->getComponents()->Print();
+    cout<<"///////////////////////////////////"<<endl<<endl;
+
 
     cout<<endl<<"///////////////////////////////////"<<endl;
     bkgPdf->getParameters(data)->Print();
@@ -259,7 +332,8 @@ int main(int argc, char* argv[]){
     int fitStatus = 0; 
     double thisNll=0.;
     runFit(bkgPdf,data,&thisNll,&fitStatus,3,mhLow,mhHigh);
-    plot(mass,bkgPdf,data,Form("%s/hgg_bkg_%s_cat%d",outDir.c_str(),ext.c_str(),cat),bins,mhLow,mhHigh);
+    //RooFitResult *fitRes = bkgPdf->fitTo(*data,Save(true),Range(mhLow,mhHigh));
+    //plot(mass,bkgPdf,data,Form("%s/hgg_bkg_%s_cat%d",outDir.c_str(),ext.c_str(),cat),bins,mhLow,mhHigh);
 
     //print results in log file
 
@@ -288,12 +362,20 @@ int main(int argc, char* argv[]){
 
 	   logfile_stream <<"    Frac    "<<frac<<"    FracErrorL    "<<fracErrorL<<"    FracErrorH    "<<fracErrorH<<endl;
 
+ //         float frac2 = ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_frac_sum2",ext.c_str(),cat)))->getValV();
+  //        float frac2ErrorL = ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_frac_sum2",ext.c_str(),cat)))->getErrorLo();
+   //       float frac2ErrorH = ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_frac_sum2",ext.c_str(),cat)))->getErrorHi();
+
+	//   logfile_stream <<"    Frac2    "<<frac2<<"    Frac2ErrorL    "<<frac2ErrorL<<"    Frac2ErrorH    "<<frac2ErrorH<<endl;
+
+
       for(int i=0;i<orderOff;i++){
           RooRealVar *coeff=(RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_%s_p%i",ext.c_str(),cat,abbr(funcType).c_str(),i));
 	  logfile_stream <<Form("     %s_%i:     ",funcType.c_str(),i)<<coeff->getValV()<<Form("     %s_%i ErrorL:     ",funcType.c_str(),i)<<coeff->getErrorLo()<<Form("     %s_%i ErrorH:     ",funcType.c_str(),i)<<coeff->getErrorHi();
 	}
        logfile_stream<<endl;
 
+    plot2(mass,bkgPdf,berComponent,dcbComponent,frac,data,Form("%s/hgg_bkg_%s_cat%d",outDir.c_str(),ext.c_str(),cat),bins,mhLow,mhHigh);
 
     //Let the DCB parameter float within their uncertaincy range in combine ?
   
@@ -305,7 +387,7 @@ int main(int argc, char* argv[]){
     outputws->Write();
   
     cout<<endl<<"///////////////////////////////////"<<endl;
-    outputws->Print();
+    //outputws->Print();
     cout<<"///////////////////////////////////"<<endl<<endl;
     
     outputfile->Close();
