@@ -362,12 +362,6 @@ int main(int argc, char* argv[]){
 
 	   logfile_stream <<"    Frac    "<<frac<<"    FracErrorL    "<<fracErrorL<<"    FracErrorH    "<<fracErrorH<<endl;
 
- //         float frac2 = ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_frac_sum2",ext.c_str(),cat)))->getValV();
-  //        float frac2ErrorL = ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_frac_sum2",ext.c_str(),cat)))->getErrorLo();
-   //       float frac2ErrorH = ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_frac_sum2",ext.c_str(),cat)))->getErrorHi();
-
-	//   logfile_stream <<"    Frac2    "<<frac2<<"    Frac2ErrorL    "<<frac2ErrorL<<"    Frac2ErrorH    "<<frac2ErrorH<<endl;
-
 
       for(int i=0;i<orderOff;i++){
           RooRealVar *coeff=(RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_%s_p%i",ext.c_str(),cat,abbr(funcType).c_str(),i));
