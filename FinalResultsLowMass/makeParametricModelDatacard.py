@@ -138,7 +138,7 @@ fileDetails['data_obs'] = [dataFile,dataWS,'roohist_data_mass_$CHANNEL']
 if options.isMultiPdf:
 	fileDetails['bkg_mass']	= [bkgFile,bkgWS,'CMS_hgg_$CHANNEL_%dTeV_bkgshape']
 else:
-	fileDetails['bkg_mass']	= [bkgFile,bkgWS,'hgg_bkg_8TeV_$CHANNEL_DCBplusBernstein5']
+	fileDetails['bkg_mass']	= [bkgFile,bkgWS,'hgg_bkg_8TeV_$CHANNEL_DCBplusBernstein']
 
 if options.isBinnedSignal:
 	fileDetails['ggH'] 			= [sigFile,sigWS,'roohist_sig_ggh_mass_m$MASS_$CHANNEL']

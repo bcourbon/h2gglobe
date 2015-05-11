@@ -897,7 +897,7 @@ pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getFixedDoubleC
  // RooRealVar *frac2 = new RooRealVar(Form("%s_frac_sum2",prefix.c_str()),Form("%s_frac_sum2",prefix.c_str()),0.01,0.000001,0.999999);
  // coeffs->add(*frac2);
 
-  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str()),*TotalBackground,*coeffs,recursive);
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s",prefix.c_str(),type.c_str()),*TotalBackground,*coeffs,recursive);
 
   return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
 }
