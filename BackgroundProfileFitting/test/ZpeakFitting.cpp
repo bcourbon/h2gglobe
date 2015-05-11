@@ -472,7 +472,7 @@ for (int cat=startingCategory; cat<ncats; cat++){
 	bkgPdf = pdfsModel.getDoubleCB(Form("hgg_bkg_%s_cat%d",ext.c_str(),cat), alphacb1Comm, alphacb2Comm);//fix alpha1 and alpha2
 	
     else 
-	bkgPdf = pdfsModel.getDoubleCBplusContinuum("Exponential",Form("hgg_bkg_%s_cat%d",ext.c_str(),cat),1,true).first;//float all parameters
+	bkgPdf = pdfsModel.getDoubleCBplusContinuum("Exponential",Form("hgg_bkg_%s_cat%d",ext.c_str(),cat),1,false).first;//float all parameters
 	
    
     int fitStatus = 0; 
