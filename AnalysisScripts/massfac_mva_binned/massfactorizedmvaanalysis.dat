@@ -11,7 +11,7 @@ mvaVbfDiphoWeights=aux/TMVA_vbf_dijet_dipho_evenbkg_scaledwt50_maxdPhi_Gradient.
 mvaVbfDiphoMethod=Gradient
 vbfVsDiphoVbfSelection=0
 multiclassVbfSelection=0
-mvaVbfCatBoundaries=
+mvaVbfCatBoundaries=1.
 
 useGbrVbfMva=0
 gbrVbfFile=aux/gbrMultiClassoct31_dijet.root
@@ -23,13 +23,13 @@ gbrVbfDiPhoFile=aux/gbrMultiClassoct31_dijetfull_jetcuts.root
 #JIM
 #multiclassVbfCatBoundaries0=1.0,0.64,0.64,0.48
 #JOSH
-multiclassVbfCatBoundaries0=1,-10,-10,-10
+multiclassVbfCatBoundaries0=1,-10
 
 
 #combined BDT
-#multiclassVbfCatBoundaries1=1.0,0.915,0.85,0.52
+#multiclassVbfCatBoundaries1=1.0,-10.
 #JOSH
-multiclassVbfCatBoundaries1=1.0,0.94,0.82,0.14
+multiclassVbfCatBoundaries1=1.0,-10.
 multiclassVbfCatBoundaries2=10.,-10.
 
 leadEtCut=40.0
@@ -91,7 +91,7 @@ gbrDiphotonFile=aux/gbrMultiClassoct31_dipho.root
 #bkgPolOrderByCat=2,2,2,2,2,2,2,2,2,2,2,2,2,2
 #bkgPolOrderByCat=2,2,2,2,2
 #only 4 cats FAN
-bkgPolOrderByCat=2,2,2,2
+bkgPolOrderByCat=2,2,2,2,2
 #FAN close cat11
 #bkgPolOrderByCat=2,2,2,2,2,2,2,2,2,2,2,2,2
 # photon ID preselection

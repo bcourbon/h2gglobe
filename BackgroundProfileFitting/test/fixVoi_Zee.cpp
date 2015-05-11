@@ -1125,17 +1125,14 @@ int main(int argc, char* argv[]){
     outfile << endl;
     paramsVoi->Print("v");
 
- 
+ outputws->import(*bkgPdf);
 
-    //outputws->Print();
-
+}
  
     outputfile->cd();
     outputws->Write();
 
-
-  }
-
+    
     outputfile->Close();
 
 

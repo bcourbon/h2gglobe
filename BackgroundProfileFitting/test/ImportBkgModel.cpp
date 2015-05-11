@@ -224,7 +224,8 @@ int main(int argc, char* argv[]){
   pdfsModel.setObsVar(mass);
   mass->setBins(bins); 
   ofstream outfile("Zee_Yield.log");  
- 
+
+cout<<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Initialization Done +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl; 
 
   for (int cat=jcats; cat<ncats; cat++){ 
    
@@ -249,6 +250,7 @@ int main(int argc, char* argv[]){
          if(!useDoubleCB)  pdfVoiFix = inWS_Zee->pdf(Form("ftest_Zee_Voi_%s_cat%d",ext.c_str(),cat));
          else pdfVoiFix = inWS_Zee->pdf(Form("ftest_Zee_DCB_%s_cat%d",ext.c_str(),cat));
 
+cout<<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Get Zee Done +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl; 
 
          if(pdfVoiFix!=NULL){
               if(!useDoubleCB){
@@ -299,6 +301,7 @@ int main(int argc, char* argv[]){
          pdfVoiFix = 0;
     }
  
+cout<<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Get Zee Params Done +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl; 
 
     RooAbsPdf *bkgPdf;
     if(orderBre == 0){
@@ -318,6 +321,8 @@ int main(int argc, char* argv[]){
 
     RooArgSet *params = bkgPdf->getParameters(*data);
     params->Print("v");
+
+cout<<"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Prepare Final Pdf Done +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"<<endl; 
 
     RooFitResult *fitRes = bkgPdf->fitTo(*data,Save(true),Range(mhLow,mhHigh));
    
@@ -346,7 +351,7 @@ int main(int argc, char* argv[]){
               outfile << Form("cat %d   ",cat) << data->sumEntries()*(1.0-BernFrac) << "   Mean " << voiMean << "   voiMeanErrorL  " << voiMeanErrorL << " voiMeanErrorH  "<< voiMeanErrorH << "  voiSigma  " << voiSigma << "  voiSigmaErrorL  " << voiSigmaErrorL << " voiSigmaErrorH  " << voiSigmaErrorH << "  voiWidth  " << voiWidth << "  voiWidthErrorL  " << voiWidthErrorL << " voiWidthErrorH  " << voiWidthErrorH << endl;
               outfile << endl;
          }else{
-              outfile << Form("cat %d    ",cat) << data->sumEntries()*(1.0-BernFrac) << "    Mean " << voiMean << "   voiMeanErrorL  " << voiMeanErrorL << " voiMeanErrorH  "<< voiMeanErrorH << "  voiSigma  " << voiSigma << "  voiSigmaErrorL  " << voiSigmaErrorL << " voiSigmaErrorH  " << voiSigmaErrorH << "    nCB1  " << voinCB1 << "    nCB1ErrorL   " << voinCB1ErrorL << "   nCB1ErrorH  " << voinCB1ErrorH << "   nCB2  " << voinCB2 << "   nCB2ErrorL  " << voinCB2ErrorL << "    nCB2ErrorH   " << voinCB2ErrorH << endl;
+              outfile << Form("cat %d    ",cat) << data->sumEntries()*(1.0-BernFrac) << "    Mean " << voiMean << "   voiMeanErrorL  " << voiMeanErrorL << " voiMeanErrorH  "<< voiMeanErrorH << "  voiSigma  " << voiSigma << "  voiSigmaErrorL  " << voiSigmaErrorL << " voiSigmaErrorH  " << voiSigmaErrorH << "    nCB1  " << voinCB1 << "    nCB1ErrorL   " << voinCB1ErrorL << "   nCB1ErrorH  " << voinCB1ErrorH << "   nCB2  " << voinCB2 << "   nCB2ErrorL  " << voinCB2ErrorL << "    nCB2ErrorH   " << voinCB2ErrorH << "bernfrac "<<BernFrac<< endl;
 
          }
          
@@ -355,6 +360,8 @@ int main(int argc, char* argv[]){
 
     outputws->pdf(Form("pdf_data_pol_model_%dTeV_cat%d",sqrts,cat))->SetName(Form("pdf_data_pol_model_%dTeV_cat%d_OLD",sqrts,cat));
     outputws->import(*bkgPdf);
+    //outputws->import(*data);
+
     outputws->pdf(Form("pdf_data_pol_model_%dTeV_cat%d",sqrts,cat))->Print();
 
 

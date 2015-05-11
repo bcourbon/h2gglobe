@@ -757,6 +757,9 @@ pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilderFAN::getOfficialS
   }
 
   RooAbsPdf *temp = new RooAddPdf(prefix.c_str(),prefix.c_str(),*OfficialSumVoigtians,*coeffs,recursive);
+
+
+
   return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfOfficial,pdfSumVoigtians));
 }
 
@@ -767,6 +770,8 @@ pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilderFAN::getOfficialS
 
   RooAbsPdf *pdfOfficial;
   RooAbsPdf *pdfSumVoigtians;
+
+cout<<"+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ recursive "<<recursive<<endl; 
 
   string nameOff = name.append("_Off");
   if (type=="Bernstein")  pdfOfficial =  getBernsteinFAN(nameOff, nOfficial, bernDownBound, bernUpBound);  
