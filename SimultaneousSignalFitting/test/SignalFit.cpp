@@ -69,7 +69,7 @@ void OptionParser(int argc, char *argv[]){
     ("constraintValueMass,M", po::value<int>(&constraintValueMass_)->default_value(105),            "Constraint value mass")
     ("skipSecondaryModels",                                                                   			"Turn off creation of all additional models")
 		("doQuadraticSigmaSum",																																					"Add sigma systematic terms in quadrature")
-		("procs", po::value<string>(&procStr_)->default_value("ggh,vbf,tth"),											"Processes (comma sep)")
+		("procs", po::value<string>(&procStr_)->default_value("ggh,vbf,wh,zh,tth"),											"Processes (comma sep)")
     ("isCutBased",                                                                               		"Is this the cut based analysis")
     ("is2011",                                                                               				"Is this the 7TeV analysis")
 		("skipMasses", po::value<string>(&massesToSkip_)->default_value(""),														"Skip these mass points - used eg for the 7TeV where there's no mc at 145")

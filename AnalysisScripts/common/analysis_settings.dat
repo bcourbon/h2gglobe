@@ -2,7 +2,8 @@
 doTriggerSelection=1
 
 ## Di-jet tag
-includeVBF=1
+includeVBF=0
+#includeVBF=1
 usePUjetveto=1
 
 ## 2-categories cut-based
