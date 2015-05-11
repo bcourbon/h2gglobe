@@ -68,8 +68,14 @@ int main(int argc, char* argv[]){
 
     TFile *inFile1 = TFile::Open(fileName_DF.c_str());
     RooWorkspace *inWS1 = (RooWorkspace*)inFile1->Get("Zpeak");
+    double meanDF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_mean",ext.c_str(),cat)))->getValV();
     double errmeanDF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_mean",ext.c_str(),cat)))->getError();
+    double sigmaDF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_sigma",ext.c_str(),cat)))->getValV();
     double errsigmaDF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_sigma",ext.c_str(),cat)))->getError();
+    double nCB1DF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_nCB1",ext.c_str(),cat)))->getValV();
+    double errnCB1DF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_nCB1",ext.c_str(),cat)))->getError();
+    double nCB2DF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_nCB2",ext.c_str(),cat)))->getValV();
+    double errnCB2DF = ((RooRealVar*)inWS1->allVars().find(Form("hgg_bkg_%s_cat%d_DCB_nCB2",ext.c_str(),cat)))->getError();
 
     TFile *inFile2 = TFile::Open(fileName_SF_allMC.c_str());
     RooWorkspace *inWS2 = (RooWorkspace*)inFile2->Get("Zpeak");
@@ -114,7 +120,7 @@ int main(int argc, char* argv[]){
 
     //print results in log file
 
-	   logfile_stream<<"cat "<<cat<<endl<<" dMean (data-MCall) "<<dmean_dataMCall<<" dMean (DY-MCall) "<<dmean_DYMCall<<endl<<" errMean (tot) "<<systmean<<endl<<" dSigma (data-MCall) "<<dsigma_dataMCall<<" dSigma (DY-MCall) "<<dsigma_DYMCall<<endl<<" errSigma (syst) "<<systsigma<<endl<<endl;
+	   logfile_stream<<"cat "<<cat<<endl<<" dMean (data-MCall) "<<dmean_dataMCall<<" dMean (DY-MCall) "<<dmean_DYMCall<<endl<<" dSigma (data-MCall) "<<dsigma_dataMCall<<" dSigma (DY-MCall) "<<dsigma_DYMCall<<endl<<"Mean "<<meanDF<<" errMean (stat + syst) "<<systmean<<endl<<"Sigma "<<sigmaDF<<" errSigma (stat + syst) "<<systsigma<<endl<<"nCB1 "<<nCB1DF<<" errNCB1 (stat) "<<errnCB1DF<<endl<<"nCB2 "<<nCB2DF<<" errNCB2 (stat) "<<errnCB2DF<<endl;
 
        logfile_stream<<endl;
 

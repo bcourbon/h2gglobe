@@ -1,0 +1,23 @@
+datacard=cms_hgg_datacard.txt
+files=CMS-HGG_SignalFits.root,CMS-HGG_finalBkg.root
+
+outDir=combineJobs/ExpAsymptotic  method=Asymptotic expected=1 mhLow=80. mhHigh=110. mhStep=0.5 jobs=61
+outDir=combineJobs/ExpProfileLikelihood  method=ProfileLikelihood expected=1 expectSignal=1 mhLow=80. mhHigh=110. mhStep=0.5 jobs=61
+
+#outDir=combineJobs/Asymptotic  method=Asymptotic expected=0 mhLow=80. mhHigh=110. mhStep=0.5 jobs=61
+#outDir=combineJobs/ProfileLikelihood  method=ProfileLikelihood expected=0 mhLow=80. mhHigh=110. mhStep=0.5 jobs=61
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

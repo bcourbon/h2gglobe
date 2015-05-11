@@ -20,6 +20,7 @@
 #include "RooDataSet.h"
 #include "RooAbsData.h"
 #include "RooRealVar.h"
+#include "RooAbsReal.h"
 #include "RooAbsBinning.h"
 #include "RooAbsPdf.h"
 #include "RooAddPdf.h"
@@ -208,7 +209,6 @@ return ab;
 
 }
 
-
 int main(int argc, char* argv[]){
  
   string fileName;
@@ -265,7 +265,7 @@ int main(int argc, char* argv[]){
 
   vector<pair<string,int> > funChoice;   // <functionType,order>
 
-  funChoice.push_back(pair<string,int>("Bernstein",5)); //cat0 
+  funChoice.push_back(pair<string,int>("Bernstein",4)); //cat0 
   funChoice.push_back(pair<string,int>("Bernstein",5)); //cat1
   funChoice.push_back(pair<string,int>("Bernstein",5)); //cat2
   funChoice.push_back(pair<string,int>("Bernstein",5)); //cat3
@@ -273,7 +273,6 @@ int main(int argc, char* argv[]){
 
   PdfModelBuilder pdfsModel;
   RooRealVar *mass = (RooRealVar*)inWS->var("CMS_hgg_mass");
-  mass->setRange(mhLow,mhHigh); 
   pdfsModel.setObsVar(mass);
   //mass->setBins(bins); 
   //mass->setRange(85,110);
@@ -282,7 +281,7 @@ int main(int argc, char* argv[]){
   for (int cat=jcats; cat<ncats; cat++){ 
 
     RooDataSet *data = (RooDataSet*)inWS->data(Form("data_mass_cat%d",cat));
-    //RooDataHist thisdataBinned(Form("roohist_data_mass_cat%d",cat),"data",*mass,*dataFull);
+    //RooDataHist thisdataBinned(Form("roohist_data_mass_cat%d",cat),"data",*mass,*dataFull); //FAN Procedure (from an official script)
     //RooDataSet *data = (RooDataSet*)&thisdataBinned; 
 
     RooAbsPdf *pdfZee;
@@ -318,11 +317,6 @@ int main(int argc, char* argv[]){
     cout<<endl<<"///////////////////////////////////"<<endl;
     bkgPdf->Print();
     cout<<"///////////////////////////////////"<<endl<<endl;
-
-  cout<<endl<<"///////////////////////////////////"<<endl;
-    berComponent->getComponents()->Print();
-    cout<<"///////////////////////////////////"<<endl<<endl;
-
 
     cout<<endl<<"///////////////////////////////////"<<endl;
     bkgPdf->getParameters(data)->Print();
@@ -373,6 +367,13 @@ int main(int argc, char* argv[]){
 
     //Let the DCB parameter float within their uncertaincy range in combine ?
   
+    ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_DCB_mean",ext.c_str(),cat)))->setConstant(false);
+    ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_DCB_sigma",ext.c_str(),cat)))->setConstant(false);
+    ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_DCB_nCB1",ext.c_str(),cat)))->setConstant(false);
+    ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_DCB_nCB2",ext.c_str(),cat)))->setConstant(false);
+
+    outputws->var(Form("pdf_data_pol_model_8TeV_cat%d_norm",cat))->SetName(Form("hgg_bkg_8TeV_cat%d_DCBplusBernstein%d_norm",cat,orderOff));
+
     outputws->import(*bkgPdf);
 
     }
