@@ -894,7 +894,10 @@ pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getFixedDoubleC
     coeffs->add(*recFrac);
   }
 
-  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),*TotalBackground,*coeffs,recursive);
+ // RooRealVar *frac2 = new RooRealVar(Form("%s_frac_sum2",prefix.c_str()),Form("%s_frac_sum2",prefix.c_str()),0.01,0.000001,0.999999);
+ // coeffs->add(*frac2);
+
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str()),*TotalBackground,*coeffs,recursive);
 
   return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
 }
@@ -908,16 +911,37 @@ RooAbsPdf* PdfModelBuilder::fixDoubleCB(RooAbsPdf *dcb, RooDataSet *data, string
     RooRealVar *alphaCB1=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB1",name.c_str()));
     RooRealVar *alphaCB2=(RooRealVar*)dcb->getParameters(*data)->find(Form("%s_alphaCB2",name.c_str()));
 
-    meanCB->setConstant(true);
+    meanCB->SetName(Form("%s_mean_old",name.c_str()));
+    sigmaCB->SetName(Form("%s_sigma_old",name.c_str()));
+    nCB1->SetName(Form("%s_nCB1_old",name.c_str()));
+    nCB2->SetName(Form("%s_nCB2_old",name.c_str()));
+    alphaCB1->SetName(Form("%s_alphaCB1_old",name.c_str()));
+    alphaCB2->SetName(Form("%s_alphaCB2_old",name.c_str()));
+
+    //The parameters will be constant in the background fits, then will float within their uncertaincy range in combine fits
+
+    RooRealVar *meanCB_newrange = new RooRealVar(Form("%s_mean",name.c_str()),Form("%s_mean",name.c_str()), meanCB->getValV(), meanCB->getValV()+meanCB->getErrorLo(),meanCB->getValV()+meanCB->getErrorHi());
+    RooRealVar *sigmaCB_newrange = new RooRealVar(Form("%s_sigma",name.c_str()),Form("%s_sigma",name.c_str()), sigmaCB->getValV(), sigmaCB->getValV()+sigmaCB->getErrorLo(),sigmaCB->getValV()+sigmaCB->getErrorHi());
+    RooRealVar *nCB1_newrange = new RooRealVar(Form("%s_nCB1",name.c_str()),Form("%s_nCB1",name.c_str()), nCB1->getValV(), nCB1->getValV()+nCB1->getErrorLo(),nCB1->getValV()+nCB1->getErrorHi());
+    RooRealVar *nCB2_newrange = new RooRealVar(Form("%s_nCB2",name.c_str()),Form("%s_nCB2",name.c_str()), nCB2->getValV(), nCB2->getValV()+nCB2->getErrorLo(),nCB2->getValV()+nCB2->getErrorHi());
+    RooRealVar *alphaCB1_newrange = new RooRealVar(Form("%s_alphaCB1",name.c_str()),Form("%s_alphaCB1",name.c_str()), alphaCB1->getValV());
+    RooRealVar *alphaCB2_newrange = new RooRealVar(Form("%s_alphaCB2",name.c_str()),Form("%s_alphaCB2",name.c_str()), alphaCB2->getValV());
+
+    meanCB_newrange->setConstant(true);
+    sigmaCB_newrange->setConstant(true);
+    nCB1_newrange->setConstant(true);
+    nCB2_newrange->setConstant(true);
+
+    RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB_newrange,*sigmaCB_newrange, *alphaCB1_newrange, *nCB1_newrange, *alphaCB2_newrange, *nCB2_newrange);
+
+
+/*    meanCB->setConstant(true);
     sigmaCB->setConstant(true);
     nCB1->setConstant(true);
     nCB2->setConstant(true);
 
-      //Note: alpha1 and alpha2 are already constant
-
     RooAbsPdf *temp = new RooDoubleCBFast(name.c_str(),name.c_str(), *obs_var,*meanCB,*sigmaCB, *alphaCB1, *nCB1, *alphaCB2, *nCB2);
-
-
+*/
     return temp;
 }
 
