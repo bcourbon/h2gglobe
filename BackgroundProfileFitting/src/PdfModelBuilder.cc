@@ -822,7 +822,7 @@ pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getDoubleCBplus
     coeffs->add(*recFrac);
   }
 
-  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),*TotalBackground,*coeffs,recursive);
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s",prefix.c_str(),type.c_str()),*TotalBackground,*coeffs,recursive);
 
   return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
 }
@@ -859,7 +859,7 @@ pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >   PdfModelBuilder::getDoubleCBplus
     coeffs->add(*recFrac);
   }
 
-  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s%i",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s",prefix.c_str(),type.c_str()),*TotalBackground,*coeffs,recursive);
+  RooAbsPdf *temp = new RooAddPdf(Form("%s_DCBplus%s",prefix.c_str(),type.c_str(),nOfficial),Form("%s_DCBplus%s",prefix.c_str(),type.c_str()),*TotalBackground,*coeffs,recursive);
 
   return pair<RooAbsPdf*,pair<RooAbsPdf*,RooAbsPdf*> >(temp, make_pair(pdfContinuum,pdfZpeak));
 }
