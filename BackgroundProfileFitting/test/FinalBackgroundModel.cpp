@@ -372,7 +372,7 @@ int main(int argc, char* argv[]){
     ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_DCB_nCB1",ext.c_str(),cat)))->setConstant(false);
     ((RooRealVar*)params->find(Form("hgg_bkg_%s_cat%d_DCB_nCB2",ext.c_str(),cat)))->setConstant(false);
 
-    outputws->var(Form("pdf_data_pol_model_8TeV_cat%d_norm",cat))->SetName(Form("hgg_bkg_8TeV_cat%d_DCBplusBernstein%d_norm",cat,orderOff));
+    outputws->var(Form("pdf_data_pol_model_8TeV_cat%d_norm",cat))->SetName(Form("hgg_bkg_8TeV_cat%d_DCBplusBernstein_norm",cat));
 
     outputws->import(*bkgPdf);
 
