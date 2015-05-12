@@ -770,7 +770,7 @@ int main(int argc, char* argv[]){
 	}
 	else {
 		//bpdf = (RooAbsPdf*)inWS->pdf(Form("data_pol_model_%dTeV_cat%d",sqrts,cat));
-		bpdf = (RooAbsPdf*)inWS->pdf(Form("hgg_bkg_%dTeV_cat%d_DCBplusBernstein5",sqrts,cat));
+		bpdf = (RooAbsPdf*)inWS->pdf(Form("hgg_bkg_%dTeV_cat%d_DCBplusBernstein",sqrts,cat));
 
 		if (!bpdf){
 			cout << "Cant't find background pdf" << endl;
